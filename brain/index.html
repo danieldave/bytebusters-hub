@@ -1,0 +1,538 @@
+<!doctype html><html><head><script src="/claude-shim.js"></script><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ByteBusters Brain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: an exercise-book app — sticky header with project picker, four tabs, one working column (wider two-column on desktop). Signature: the four Logic Colours. */
+:root{
+  --paper:#F5F7F2; --sheet:#FFFFFF; --ink:#1A2847; --muted:#5B6578; --rule:#DCE3EC; --margin:#E8A3A3;
+  --accent:#1F4FD1; --accent-ink:#FFFFFF; --soft:#E9EEF9;
+  --blue:#2563EB; --blue-bg:#E3ECFD; --red:#D23B3B; --red-bg:#FBE5E5; --green:#178A4C; --green-bg:#DFF3E7; --purple:#7A3FD1; --purple-bg:#EEE6FB;
+  --good:#178A4C; --warn:#B7791F; --bad:#C53030;
+  --f-display:"Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#111A17; --sheet:#18241F; --ink:#EAF1EC; --muted:#9DB0A6; --rule:#2A3A33; --margin:#7A3B3B;
+  --accent:#7FA6FF; --accent-ink:#0D1530; --soft:#1F2E3A;
+  --blue:#7FA6FF; --blue-bg:#1B2A47; --red:#FF8A8A; --red-bg:#3A1F22; --green:#6FD69B; --green-bg:#16332A; --purple:#C3A2FF; --purple-bg:#2C2142;
+  --good:#6FD69B; --warn:#F2C26B; --bad:#FF8A8A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111A17; --sheet:#18241F; --ink:#EAF1EC; --muted:#9DB0A6; --rule:#2A3A33; --margin:#7A3B3B;
+  --accent:#7FA6FF; --accent-ink:#0D1530; --soft:#1F2E3A;
+  --blue:#7FA6FF; --blue-bg:#1B2A47; --red:#FF8A8A; --red-bg:#3A1F22; --green:#6FD69B; --green-bg:#16332A; --purple:#C3A2FF; --purple-bg:#2C2142;
+  --good:#6FD69B; --warn:#F2C26B; --bad:#FF8A8A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+.sign body, body.sign{font-size:20px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1060px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:2px solid var(--rule)}
+.topin{max-width:1060px;margin:0 auto;padding-inline:16px;padding-block:12px 0;display:grid;gap:10px}
+.brandrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-family:var(--f-display);font-weight:800;font-size:1.45rem;letter-spacing:-.02em;line-height:1}
+.logo .dots{display:inline-flex;gap:3px;margin-left:6px;vertical-align:middle}
+.logo .dots i{width:8px;height:8px;border-radius:50%;display:block}
+.count{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.spacer{flex:1}
+.toggle{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--rule);background:var(--sheet);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:.85rem;font-weight:700}
+.toggle[aria-pressed="true"]{border-color:var(--purple);background:var(--purple-bg);color:var(--purple)}
+.pickrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pickrow select{flex:1 1 240px;min-width:0;padding:10px 12px;border-radius:10px;border:2px solid var(--rule);background:var(--sheet);font-weight:700}
+.roles{display:flex;gap:4px}
+.roles button{width:40px;height:40px;border-radius:10px;border:2px solid var(--rule);background:var(--sheet);font-family:var(--f-mono);cursor:pointer}
+.roles button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+nav.tabs{display:flex;gap:2px;overflow-x:auto}
+nav.tabs button{flex:1 0 auto;padding:10px 14px;border:0;background:none;cursor:pointer;font-weight:700;color:var(--muted);border-bottom:4px solid transparent}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.status{font-size:.82rem;color:var(--muted);padding-block:10px 0}
+.status b{color:var(--ink)}
+section.panel{padding-block:18px 0;display:grid;gap:16px}
+.grid2{display:grid;gap:16px;grid-template-columns:1fr}
+@media (min-width:860px){.grid2{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}}
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:16px;min-width:0}
+.ruled{background-image:linear-gradient(to right,transparent 22px,var(--margin) 22px,var(--margin) 23.5px,transparent 23.5px);padding-left:36px}
+h2{font-family:var(--f-display);font-weight:800;font-size:1.25rem;margin:0 0 4px;text-wrap:balance;letter-spacing:-.01em}
+h3{font-family:var(--f-display);font-weight:600;font-size:1rem;margin:0 0 6px}
+.eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+p{margin:0}
+.muted{color:var(--muted)}
+.projcard{display:grid;gap:6px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:.78rem;font-weight:700;background:var(--soft)}
+.c-BLUE{background:var(--blue-bg);color:var(--blue)} .c-RED{background:var(--red-bg);color:var(--red)} .c-GREEN{background:var(--green-bg);color:var(--green)} .c-PURPLE{background:var(--purple-bg);color:var(--purple)}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.legend div{border-radius:10px;padding:10px;font-size:.85rem}
+.legend b{display:block;font-family:var(--f-display)}
+/* chat */
+.chat{display:grid;gap:12px;max-height:56vh;overflow-y:auto;padding-right:4px}
+.msg{border-radius:14px;padding:12px 14px;max-width:92%;min-width:0;overflow-wrap:anywhere}
+.msg.me{justify-self:end;background:var(--ink);color:var(--paper);border-bottom-right-radius:4px}
+.msg.brain{justify-self:start;background:var(--soft);border-bottom-left-radius:4px;border-left:6px solid var(--accent)}
+.msg.brain.k-BLUE{border-left-color:var(--blue)} .msg.brain.k-RED{border-left-color:var(--red)} .msg.brain.k-GREEN{border-left-color:var(--green)} .msg.brain.k-PURPLE{border-left-color:var(--purple)}
+.msg ol{margin:8px 0 0;padding-left:20px}
+.msg .check{margin-top:8px;font-style:italic}
+.msg img{border-radius:8px;max-height:160px;margin-top:6px}
+.blk{font-family:var(--f-mono);font-size:.85em;background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:0 5px;white-space:nowrap}
+.composer{display:grid;gap:8px}
+textarea{width:100%;min-height:76px;resize:vertical;padding:10px 12px;border:2px solid var(--rule);border-radius:10px;background:var(--sheet)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--sheet);color:var(--ink);border:2px solid var(--rule)}
+.btn:disabled{opacity:.5;cursor:default}
+.small{font-size:.82rem}
+label.file{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+label.file input{position:absolute;opacity:0;width:1px;height:1px}
+.starter{display:flex;gap:6px;flex-wrap:wrap}
+.starter button{border:1px dashed var(--rule);background:none;border-radius:999px;padding:5px 10px;cursor:pointer;font-size:.82rem;color:var(--muted)}
+/* judge */
+.qlist{display:grid;gap:6px}
+.qlist button{text-align:left;border:2px solid var(--rule);background:var(--sheet);border-radius:10px;padding:8px 10px;cursor:pointer;display:flex;gap:10px;align-items:baseline}
+.qlist button[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+.qlist .n{font-family:var(--f-mono);color:var(--muted);font-size:.8rem;min-width:1.6em}
+.qlist .best{margin-left:auto;font-family:var(--f-mono);font-size:.8rem}
+.score{display:flex;gap:4px}
+.score i{width:22px;height:22px;border-radius:6px;background:var(--rule);display:block}
+.score i.on{background:var(--good)}
+.result{display:grid;gap:8px}
+.say{border-left:4px solid var(--good);padding-left:10px}
+/* trail */
+.stages{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.stages button{border:2px solid var(--rule);background:var(--sheet);border-radius:10px;padding:8px 4px;cursor:pointer;font-size:.74rem;line-height:1.2;min-height:64px;display:grid;gap:4px;align-content:start}
+.stages button b{font-family:var(--f-mono);font-size:.9rem}
+.stages button.done{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.timeline{display:grid;gap:0;list-style:none;margin:0;padding:0}
+.timeline li{display:grid;grid-template-columns:76px minmax(0,1fr);gap:10px;padding-block:10px;border-bottom:1px solid var(--rule)}
+.timeline time{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.kind{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+/* radar */
+.radar{display:grid;gap:8px}
+.rcard{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:12px;border-left:6px solid var(--rule)}
+.rcard.hot{border-left-color:var(--bad)} .rcard.warm{border-left-color:var(--warn)} .rcard.ok{border-left-color:var(--good)}
+.rcard .meta{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.pill{font-size:.72rem;font-weight:700;border-radius:999px;padding:3px 9px;white-space:nowrap}
+.pill.hot{background:var(--red-bg);color:var(--bad)} .pill.warm{background:var(--soft);color:var(--warn)} .pill.ok{background:var(--green-bg);color:var(--good)}
+.mini{display:flex;gap:3px}
+.mini i{width:14px;height:8px;border-radius:2px;background:var(--rule);display:block}
+.mini i.on{background:var(--green)}
+.heat{overflow-x:auto}
+.heat table{border-collapse:separate;border-spacing:4px;width:100%;min-width:380px;font-size:.85rem}
+.heat th{text-align:left;font-weight:700;color:var(--muted);font-size:.75rem}
+.heat td{border-radius:8px;text-align:center;padding:8px 4px;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.empty{border:2px dashed var(--rule);border-radius:var(--r);padding:16px;color:var(--muted);text-align:center}
+.notice{background:var(--soft);border-radius:10px;padding:10px 12px;font-size:.85rem}
+.thinking::after{content:"";display:inline-block;width:1em;text-align:left;animation:dots 1.2s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+@media (prefers-reduced-motion:reduce){.thinking::after{animation:none;content:"..."}}
+body.sign .msg{font-size:1.1em;line-height:1.6}
+body.sign .chat{max-height:none}
+</style>
+
+<header class="top">
+  <div class="topin">
+    <div class="brandrow">
+      <div class="logo">ByteBusters Brain<span class="dots" aria-hidden="true"><i style="background:var(--blue)"></i><i style="background:var(--red)"></i><i style="background:var(--green)"></i><i style="background:var(--purple)"></i></span></div>
+      <span class="count" id="countdown"></span>
+      <span class="spacer"></span>
+      <button class="toggle" id="signBtn" aria-pressed="false" title="Bigger text, shorter answers, one idea per line">Sign-friendly mode</button>
+    </div>
+    <div class="pickrow">
+      <label class="eyebrow" for="projSel">Project</label>
+      <select id="projSel"></select>
+      <div class="roles" role="group" aria-label="Which builder is using the Brain">
+        <span class="eyebrow" style="align-self:center;margin-right:4px">Builder</span>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="ask" aria-selected="true">Ask the Brain</button>
+      <button role="tab" data-tab="judge" aria-selected="false">Judge Practice</button>
+      <button role="tab" data-tab="trail" aria-selected="false">Learning Trail</button>
+      <button role="tab" data-tab="radar" aria-selected="false">Trainer Radar</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="status" id="status">Starting the Brain<span class="thinking"></span></p>
+
+  <!-- ASK -->
+  <section class="panel" id="tab-ask">
+    <div class="grid2">
+      <div class="sheet" style="display:grid;gap:12px">
+        <div>
+          <h2>Ask the Brain</h2>
+          <p class="muted small">Stuck? Type the problem in your own words, or snap a photo of your code. Every answer is tagged with its Logic Colour.</p>
+        </div>
+        <div class="chat" id="chat" aria-live="polite"></div>
+        <div class="starter" id="starters"></div>
+        <form class="composer" id="askForm">
+          <label class="eyebrow" for="askBox">Your question</label>
+          <textarea id="askBox" placeholder="Example: My timer keeps going after the game ends. What do I do?"></textarea>
+          <div class="row">
+            <button class="btn" type="submit" id="askBtn">Ask</button>
+            <label class="file btn ghost" id="photoWrap" hidden>Add photo of code<input type="file" id="photo" accept="image/*" capture="environment"></label>
+            <span class="small muted" id="photoName"></span>
+            <span class="spacer"></span>
+            <label class="small row" style="gap:6px"><input type="checkbox" id="deep"> Think harder (slower)</label>
+          </div>
+        </form>
+      </div>
+      <aside style="display:grid;gap:16px;align-content:start">
+        <div class="sheet projcard" id="projCard"></div>
+        <div class="sheet">
+          <h3>The four Logic Colours</h3>
+          <div class="legend">
+            <div class="c-BLUE"><b>Blue · Variables</b>A labelled box that remembers a number or word. Like the total in Mama's market notebook.</div>
+            <div class="c-RED"><b>Red · Conditionals</b>If this happens, do that. Else do something else. If it rains, carry umbrella.</div>
+            <div class="c-GREEN"><b>Green · Loops &amp; Timers</b>Repeat, forever, wait, countdown. The generator that keeps humming.</div>
+            <div class="c-PURPLE"><b>Purple · Events</b>When something happens, this happens. When the bell rings, line up.</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- JUDGE -->
+  <section class="panel" id="tab-judge" hidden>
+    <div class="grid2">
+      <div class="sheet" style="display:grid;gap:12px">
+        <div>
+          <h2>Judge Practice</h2>
+          <p class="muted small">Pick a question. The builder answers out loud, the trainer types what they said, and the Brain scores it like a kind but serious judge.</p>
+        </div>
+        <div class="qlist" id="qlist"></div>
+      </div>
+      <div class="sheet" style="display:grid;gap:12px;align-content:start">
+        <p class="eyebrow" id="qNum">Question</p>
+        <h2 id="qText"></h2>
+        <form class="composer" id="judgeForm">
+          <label class="eyebrow" for="ansBox">What the builder said</label>
+          <textarea id="ansBox" placeholder="Type their answer as close to their words as you can."></textarea>
+          <div class="row"><button class="btn" type="submit" id="judgeBtn">Score my answer</button></div>
+        </form>
+        <div class="result" id="judgeOut"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRAIL -->
+  <section class="panel" id="tab-trail" hidden>
+    <div class="grid2">
+      <div class="sheet" style="display:grid;gap:14px">
+        <div>
+          <h2 id="trailTitle">Learning Trail</h2>
+          <p class="muted small">Proof of what this team learned, in order. Show it to judges who ask "Did you really build this?"</p>
+        </div>
+        <ul class="timeline" id="timeline"></ul>
+        <div class="row">
+          <button class="btn ghost" id="dlBtn" hidden>Save trail as a page</button>
+          <span class="small muted" id="dlMsg"></span>
+        </div>
+      </div>
+      <div style="display:grid;gap:16px;align-content:start">
+        <div class="sheet">
+          <h3>Stage reached</h3>
+          <p class="muted small" style="margin-bottom:10px">Tap the stage this team has fully finished.</p>
+          <div class="stages" id="stages"></div>
+        </div>
+        <form class="sheet ruled composer" id="todayForm">
+          <h3>Today we…</h3>
+          <label class="eyebrow" for="todayBox">What did the team build or fix today?</label>
+          <textarea id="todayBox" placeholder="Example: We made the timer stop at zero using an if block."></textarea>
+          <div class="row"><button class="btn" type="submit">Add to trail</button></div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- RADAR -->
+  <section class="panel" id="tab-radar" hidden>
+    <div class="sheet">
+      <h2>Who needs you next</h2>
+      <p class="muted small">Ranked from stage progress, judge scores and how long since a team last logged work. Plan your next centre visit from the top.</p>
+    </div>
+    <div class="radar" id="radar"></div>
+    <div class="sheet">
+      <h3>Where the questions are</h3>
+      <p class="muted small" style="margin-bottom:8px">Count of questions asked per Logic Colour, by school. The darkest cell is what to re-teach.</p>
+      <div class="heat" id="heat"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+const SHOW = new Date("2026-10-22T09:00:00+01:00");
+const STAGES = {
+  Scratch:["Plan","Set the Stage","Core Mechanic","Add the Logic","Test & Showcase"],
+  "Generative AI":["Plan the Tool","Design the Prompt","Test With Real Data","Add the Logic","Test & Showcase"],
+  "Web Development":["Plan the Content","Build the Structure","Core Interaction","Add the Logic","Test & Showcase"]
+};
+const TOOLS = {
+  Scratch:"Scratch 3 (blocks: events, broadcasts, variables, if/else, repeat/forever, wait, timers, costumes, backdrops). Trainer-built starter game; students swap in real sprites and each builder owns one rule.",
+  "Generative AI":"A small web app vibe-coded with Claude that sends the user's input to the OpenAI API and shows the AI's reply. Students design the prompt, test with real Nigerian data and add guardrails. Trainer prepared the starter app; students must say so honestly.",
+  "Web Development":"HTML, CSS and JavaScript, vibe-coded with Claude. Students know the basics. Trainer prepared the starter app; students must say so honestly."
+};
+const P = [
+ ["middleman-maze","Middleman Maze","Unity High School, Ijoko","Scratch","Prices jump every time goods pass through another middleman.","The player moves farm produce to market through a maze, choosing routes with fewer middlemen so the final price stays fair."],
+ ["shrinking-naira","Shrinking Naira","Unity High School, Ijoko","Scratch","The same naira buys less and less as prices rise.","The player shops with a fixed amount while prices climb, and sees the basket shrink. Flagship project of the showcase video."],
+ ["empty-barn","The Empty Barn","Unity High School, Ijoko","Scratch","Farm harvest gets lost before it can feed families or be sold.","The player protects the barn's stock from waste and loss with quick decisions."],
+ ["honest-scale","Honest Scale","Methodist High School, Arigbajo","Scratch","Some traders cheat customers with tampered scales.","The player is the stall seller. Cheating gives quick money, but customers walk to the honest neighbour. Trust vs profit."],
+ ["real-vs-fake","Real vs. Fake","Methodist High School, Arigbajo","Scratch","Counterfeit products look real and can harm people.","Spot the fake before the timer ends: lives, a random fake side and a magnifier. Built with the Deaf and Hard-of-Hearing builders."],
+ ["family-job-board","Family Job Board","Methodist High School, Arigbajo","Scratch","Home chores often fall on one person.","A 40-second day: glowing chores to share out fairly, ending in Gold, Silver or Bronze."],
+ ["naira-wise","Naira Wise","Yewa College, Ilaro","Scratch","Young people rarely practise splitting money between needs, wants and savings.","Split your money in 30 seconds. At 15 seconds an emergency hits, so savings matter."],
+ ["race-against-rot","Race Against Rot","Yewa College, Ilaro","Scratch","Food spoils before it reaches market or the table.","A freshness countdown: pick the right storage before the food rots, and watch out for rain."],
+ ["owambe-budget","The Great Owambe Budget","Yewa College, Ilaro","Scratch","Party spending can run far past the budget.","Plan an owambe on a fixed budget: pick and un-pick items, then handle Aunty's surprise request."],
+ ["inflation-explainer","Inflation Explainer AI","Yewa College, Ilaro","Generative AI","Many people feel prices rise but cannot explain why.","An AI tool that explains price rises in simple words with Nigerian examples."],
+ ["career-compass","Naija Career Compass AI","Yewa College, Ilaro","Generative AI","Students choose careers without knowing the options.","An AI tool that suggests career paths from a student's interests and strengths."],
+ ["community-voice","Community Voice AI","Yewa College, Ilaro","Generative AI","Community problems are not reported clearly to leaders.","An AI tool that turns residents' complaints into clear, polite reports."],
+ ["apprentice-pathway","Apprentice Pathway Explorer","Yewa College, Ilaro","Web Development","Young people don't know how to start learning a trade.","A website that shows apprenticeship paths for trades, step by step."],
+ ["harvest-calendar","Harvest Calendar Naija","Yewa College, Ilaro","Web Development","Farmers and families miss the right planting and harvest times.","A website calendar showing what to plant and harvest each month."],
+ ["scam-shield","Scam Shield","Yewa College, Ilaro","Web Development","Scam messages trick people out of money.","A website that helps people spot scam messages and stay safe."]
+].map(a=>({id:a[0],name:a[1],school:a[2],track:a[3],problem:a[4],how:a[5]}));
+const BY_ID = Object.fromEntries(P.map(p=>[p.id,p]));
+const SCHOOLS = ["Unity High School, Ijoko","Methodist High School, Arigbajo","Yewa College, Ilaro"];
+const QS = ["What is your project?","What problem does it solve?","Who has this problem?","How does it work?","What technology did you use, and why?","What did YOU do on this project?","What was difficult?","How did you solve it?","What did you learn?","What would you improve next?"];
+const COLORS = {BLUE:"Variables",RED:"Conditionals",GREEN:"Loops & Timers",PURPLE:"Events"};
+
+const $ = s=>document.querySelector(s);
+const el = (tag,attrs={},...kids)=>{const e=document.createElement(tag);for(const[k,v]of Object.entries(attrs)){if(k==="class")e.className=v;else if(k==="text")e.textContent=v;else e.setAttribute(k,v);}for(const c of kids){if(c!=null)e.append(c);}return e;};
+const ls = {get(k,d){try{const v=localStorage.getItem("bbb:"+k);return v==null?d:JSON.parse(v);}catch(_){return d;}},set(k,v){try{localStorage.setItem("bbb:"+k,JSON.stringify(v));}catch(_){}}};
+
+let state = {project: ls.get("project","shrinking-naira"), role: ls.get("role",1), sign: ls.get("sign",false), tab:"ask", q:0};
+if(!BY_ID[state.project]) state.project="shrinking-naira";
+let trail = [];       // all trail entries
+let stages = {};      // id -> stage number
+let chats = {};       // id -> [{role,content,concept,steps,check,img}]
+let sample=null, db=null, downloads=null, aiOK=null, store="starting";
+
+/* ---------- header ---------- */
+function countdown(){const d=Math.ceil((SHOW-new Date())/86400000);$("#countdown").textContent=d>0?`${d} days to the National Showcase`:(d===0?"Showcase day":"Showcase done");}
+countdown();
+const sel=$("#projSel");
+for(const s of SCHOOLS){const g=el("optgroup",{label:s});P.filter(p=>p.school===s).forEach(p=>g.append(el("option",{value:p.id,text:`${p.name} · ${p.track}`})));sel.append(g);}
+sel.value=state.project;
+sel.onchange=()=>{state.project=sel.value;ls.set("project",state.project);renderAll();};
+const rolesBox=document.querySelector(".roles");
+for(let i=1;i<=5;i++){const b=el("button",{type:"button","aria-pressed":String(i===state.role),"aria-label":"Builder "+i,text:String(i)});b.onclick=()=>{state.role=i;ls.set("role",i);rolesBox.querySelectorAll("button").forEach((x,j)=>x.setAttribute("aria-pressed",String(j+1===i)));};rolesBox.append(b);}
+function applySign(){document.body.classList.toggle("sign",state.sign);$("#signBtn").setAttribute("aria-pressed",String(state.sign));}
+$("#signBtn").onclick=()=>{state.sign=!state.sign;ls.set("sign",state.sign);applySign();};
+applySign();
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>{state.tab=b.dataset.tab;document.querySelectorAll("nav.tabs button").forEach(x=>x.setAttribute("aria-selected",String(x===b)));["ask","judge","trail","radar"].forEach(t=>$("#tab-"+t).hidden=t!==state.tab);if(location.hash!=="#"+state.tab){try{history.replaceState(null,"","#"+state.tab);}catch(_){}}});
+if(/^#(ask|judge|trail|radar)$/.test(location.hash)){document.querySelector(`nav.tabs button[data-tab="${location.hash.slice(1)}"]`).click();}
+
+function setStatus(){
+  const s=$("#status");s.textContent="";
+  const ai = aiOK===null?"checking":aiOK?"on":"off";
+  s.append(el("b",{text:"AI: "}),ai==="on"?"live. ":ai==="off"?"not available here, so quick-help cards are shown. ":"checking. ",
+    el("b",{text:"Saving: "}),store==="db"?"shared trail, synced for the trainer.":store==="local"?"on this device only.":"starting.");
+}
+
+/* ---------- project card ---------- */
+function projCard(){
+  const p=BY_ID[state.project];const c=$("#projCard");c.textContent="";
+  c.append(el("p",{class:"eyebrow",text:p.school}),el("h2",{text:p.name}),
+    el("div",{class:"chips"},el("span",{class:"chip",text:p.track}),el("span",{class:"chip",text:`Stage ${stages[p.id]||0} of 5 done`})),
+    el("p",{},el("b",{text:"Problem: "}),p.problem),el("p",{class:"muted"},p.how));
+}
+
+/* ---------- ask ---------- */
+const STARTERS={Scratch:["My sprite won't move when I click it","How do I make a timer count down?","How do I stop the game when time is up?","What is a broadcast?"],"Generative AI":["What is a prompt?","Why does the app need an API key?","How do I stop the AI giving wrong answers?","Explain my app like I'm 10"],"Web Development":["What does JavaScript do on my page?","My button does nothing when I click it","What is the difference between HTML and CSS?","How do I explain vibe-coding to a judge?"]};
+function renderStarters(){const b=$("#starters");b.textContent="";STARTERS[BY_ID[state.project].track].forEach(t=>{const x=el("button",{type:"button",text:t});x.onclick=()=>{$("#askBox").value=t;$("#askBox").focus();};b.append(x);});}
+function inlineBlocks(text){const f=document.createDocumentFragment();String(text).split(/(\[[^\]\n]{1,60}\])/g).forEach(part=>{if(/^\[[^\]]+\]$/.test(part))f.append(el("span",{class:"blk",text:part.slice(1,-1)}));else if(part)f.append(part);});return f;}
+function renderChat(){
+  const box=$("#chat");box.textContent="";const list=chats[state.project]||[];
+  if(!list.length){
+    if(aiOK===false){quickHelp(box);return;}
+    box.append(el("div",{class:"empty"},`Ask anything about ${BY_ID[state.project].name}. The Brain explains it in simple words and tags which Logic Colour it is.`));return;
+  }
+  for(const m of list){
+    if(m.role==="user"){const d=el("div",{class:"msg me"},m.content);if(m.img){d.append(el("br"),el("img",{src:m.img,alt:"Photo of code"}));}box.append(d);continue;}
+    const d=el("div",{class:"msg brain"+(COLORS[m.concept]?" k-"+m.concept:"")});
+    if(m.pending){d.append(el("span",{class:"thinking",text:"Thinking"}));box.append(d);continue;}
+    if(COLORS[m.concept])d.append(el("div",{class:"chips",style:"margin-bottom:6px"},el("span",{class:"chip c-"+m.concept,text:m.concept.charAt(0)+m.concept.slice(1).toLowerCase()+" · "+COLORS[m.concept]})));
+    const p=el("p");p.append(inlineBlocks(m.content));d.append(p);
+    if(m.steps&&m.steps.length){const ol=el("ol");m.steps.forEach(s=>{const li=el("li");li.append(inlineBlocks(s));ol.append(li);});d.append(ol);}
+    if(m.check)d.append(el("p",{class:"check",text:"Check: "+m.check}));
+    box.append(d);
+  }
+  box.scrollTop=box.scrollHeight;
+}
+function quickHelp(box){
+  box.append(el("div",{class:"notice"},"The live AI is not available on this device right now. These quick-help cards work offline."));
+  const tips={BLUE:"Make the variable first (Variables → Make a Variable). Set it at the start with [when green flag clicked] then [set score to 0]. Change it with [change score by 1].",RED:"Put the check inside a loop so it keeps checking: [forever] then [if touching ... then]. Use [if ... else] when there are two paths.",GREEN:"For a countdown: [set timer to 30], then [repeat until timer = 0] with [wait 1 seconds] and [change timer by -1] inside. When it ends, [stop all] or broadcast Game Over.",PURPLE:"Every action needs a trigger: [when green flag clicked], [when this sprite clicked], [when I receive Game Over]. Use [broadcast] so one sprite can tell others what happened."};
+  for(const k of Object.keys(COLORS)){const d=el("div",{class:"msg brain k-"+k});d.append(el("div",{class:"chips",style:"margin-bottom:6px"},el("span",{class:"chip c-"+k,text:k.charAt(0)+k.slice(1).toLowerCase()+" · "+COLORS[k]})));const p=el("p");p.append(inlineBlocks(tips[k]));d.append(p);box.append(d);}
+}
+function projectBrief(p){return `PROJECT: ${p.name} (${p.track}, ${p.school}). Problem: ${p.problem} How it works: ${p.how} Tools: ${TOOLS[p.track]} Build stages: ${STAGES[p.track].join(" → ")}. Stage finished so far: ${stages[p.id]||0} of 5.`;}
+const LOGIC = `THE FOUR LOGIC COLOURS the students already learned: BLUE = Variables (a labelled box that remembers a number or word). RED = Conditionals (if / else decisions). GREEN = Loops & Timers (repeat, forever, wait, countdowns). PURPLE = Events (when something happens → do this: green flag, sprite clicked, key pressed, broadcasts, button clicks).`;
+let askCtl=null;
+$("#askForm").onsubmit=async e=>{
+  e.preventDefault();
+  const q=$("#askBox").value.trim(); if(!q&&!photoFile)return;
+  const p=BY_ID[state.project]; const list=chats[p.id]||(chats[p.id]=[]);
+  const userMsg={role:"user",content:q||"Look at my code photo. What is wrong and what should I try?"};
+  if(photoFile){userMsg.img=URL.createObjectURL(photoFile);}
+  list.push(userMsg);const pend={role:"assistant",pending:true};list.push(pend);renderChat();
+  $("#askBox").value="";const img=photoFile;photoFile=null;$("#photo").value="";$("#photoName").textContent="";
+  $("#askBtn").disabled=true;
+  if(!sample){pend.pending=false;pend.content="The live AI is off on this device. Try the quick-help cards, or ask your trainer to open the Brain on their phone.";renderChat();$("#askBtn").disabled=false;return;}
+  const history=list.slice(0,-2).filter(m=>!m.pending).slice(-6).map(m=>(m.role==="user"?"Student: ":"Brain: ")+m.content).join("\n");
+  const mode=state.sign?"SIGN-FRIENDLY MODE IS ON: the reader is Deaf or Hard of Hearing. Use very short sentences, one idea per line, plain words, no idioms or sound words. Answer at most 45 words. Max 3 steps.":"Answer at most 90 words. Max 3 steps.";
+  const prompt=`You are ByteBusters Brain, a patient, cheerful coding coach for Nigerian students aged 9 to 15 at a beginner coding centre in Ogun State. They are preparing for a National Showcase on 22 October 2026.
+${projectBrief(p)}
+${LOGIC}
+RULES: Simple English, short sentences, everyday Nigerian examples (market, danfo, generator, NEPA light, owambe, school bell). Never shame the student. Guide them to fix it themselves: give the next small step, not the whole project. For Scratch, write exact block names in square brackets, e.g. [when green flag clicked], [change score by 1], [if <> then]. For web or AI apps, show at most 5 lines of code. If a photo of code is attached, read it carefully and point to the exact block or line that is wrong. If the question is not about coding or the project, kindly bring them back. Never ask for personal information.
+${mode}
+${history?"CONVERSATION SO FAR:\n"+history+"\n":""}STUDENT (Builder ${state.role}) ASKS: ${userMsg.content}
+Reply with only JSON: {"concept":"BLUE"|"RED"|"GREEN"|"PURPLE"|"NONE","answer":"short explanation","steps":["up to 3 short steps"],"check":"one quick question to check they understood"}`;
+  askCtl=new AbortController();
+  try{
+    const opts={signal:askCtl.signal,modelTier:$("#deep").checked?"default":"quick",cache:false};
+    if(img)opts.images=[img];
+    const r=await sample.json(prompt,opts);
+    pend.pending=false;pend.content=String(r&&r.answer||"I could not work that out. Try asking in a different way.");
+    pend.concept=String(r&&r.concept||"NONE").toUpperCase();pend.steps=Array.isArray(r&&r.steps)?r.steps.slice(0,4).map(String):[];pend.check=r&&r.check?String(r.check):"";
+    addTrail({kind:"ask",project:p.id,role:state.role,concept:COLORS[pend.concept]?pend.concept:"NONE",text:userMsg.content.slice(0,300),answer:pend.content.slice(0,400)});
+  }catch(err){
+    pend.pending=false;pend.content=errCopy(err);
+    if(err&&(err.code==="not_granted"||err.code==="sampling_disabled")){aiOK=false;setStatus();}
+  }
+  $("#askBtn").disabled=false;renderChat();
+};
+function errCopy(e){const c=e&&e.code;return c==="not_granted"?"The AI is not set up on this site yet.":c==="rate_limited"?"The Brain is busy. Wait a minute, then ask again.":c==="session_expired"?"The AI is busy. Try again in a moment.":c==="refused"?"The Brain can't answer that one. Try asking about the project.":c==="image_rejected"?"That photo didn't work. Try a clearer, smaller picture.":c==="invalid_json"?"The answer came back jumbled. Tap Ask again.":"The connection dropped. Check the internet and ask again.";}
+let photoFile=null;
+$("#photo").onchange=e=>{photoFile=e.target.files&&e.target.files[0]||null;$("#photoName").textContent=photoFile?"Photo ready: "+photoFile.name:"";};
+
+/* ---------- judge ---------- */
+function bestFor(pid,qi){let b=0;trail.forEach(t=>{if(t.project===pid&&t.kind==="judge"&&t.q===qi&&t.score>b)b=t.score;});return b;}
+function renderQs(){
+  const box=$("#qlist");box.textContent="";
+  QS.forEach((q,i)=>{const best=bestFor(state.project,i);const b=el("button",{type:"button","aria-pressed":String(i===state.q)},el("span",{class:"n",text:String(i+1).padStart(2,"0")}),el("span",{text:q}),el("span",{class:"best",text:best?best+"/5":"–"}));b.onclick=()=>{state.q=i;renderQs();renderQ();};box.append(b);});
+}
+function renderQ(){$("#qNum").textContent=`Judge question ${state.q+1} of 10 · Builder ${state.role}`;$("#qText").textContent=QS[state.q];}
+function scoreBar(n){const s=el("div",{class:"score","aria-label":n+" out of 5"});for(let i=1;i<=5;i++)s.append(el("i",{class:i<=n?"on":""}));return s;}
+$("#judgeForm").onsubmit=async e=>{
+  e.preventDefault();const a=$("#ansBox").value.trim();if(!a)return;
+  const p=BY_ID[state.project];const out=$("#judgeOut");out.textContent="";
+  if(!sample){out.append(el("div",{class:"notice"},"No live AI here. Self-check instead: did the answer say WHAT, WHY it matters, and MY PART in one or two sentences? If yes, give yourself a star."));return;}
+  out.append(el("p",{class:"thinking",text:"The judge is thinking"}));$("#judgeBtn").disabled=true;
+  const prompt=`You are a kind but serious judge at a Nigerian national coding showcase for students aged 9 to 15.
+${projectBrief(p)}
+The judge asked: "${QS[state.q]}"
+The student (Builder ${state.role}) answered: """${a.slice(0,1500)}"""
+Score 1 to 5 for an answer from a beginner of this age: 5 = clear, specific, confident and true to the project; 3 = right idea but vague; 1 = off-topic or empty. Judges value: naming the real problem, the student's OWN part, a real difficulty they fixed, and honesty. Starter code was prepared by the trainer; if the student claims to have built everything alone, kindly remind them to say the trainer prepared the starter and what THEY added. Do not invent features the project does not have.
+${state.sign?"The student is Deaf or Hard of Hearing and will sign the answer: keep feedback in very short, plain lines.":""}
+Reply with only JSON: {"score":1-5,"praise":"one sentence on what was good","fix":"one sentence on the single most useful improvement","stronger":"a better version of their answer in their own voice, max 45 words, using only facts from their answer and the project"}`;
+  try{
+    const r=await sample.json(prompt,{modelTier:"default",cache:false});
+    const sc=Math.max(1,Math.min(5,Math.round(Number(r&&r.score)||1)));
+    out.textContent="";
+    out.append(el("div",{class:"row"},scoreBar(sc),el("b",{text:sc+" / 5"})),
+      el("p",{},el("b",{text:"Good: "}),String(r.praise||"")),
+      el("p",{},el("b",{text:"Make it better: "}),String(r.fix||"")),
+      el("div",{class:"say"},el("p",{class:"eyebrow",text:"Say it like this"}),el("p",{text:String(r.stronger||"")})));
+    addTrail({kind:"judge",project:p.id,role:state.role,q:state.q,score:sc,text:a.slice(0,300),answer:String(r.fix||"").slice(0,300)});
+    $("#ansBox").value="";
+  }catch(err){out.textContent="";out.append(el("div",{class:"notice",text:errCopy(err)}));}
+  $("#judgeBtn").disabled=false;
+};
+
+/* ---------- trail ---------- */
+function fmt(ts){const d=new Date(ts);return d.toLocaleDateString("en-GB",{day:"numeric",month:"short"})+"\n"+d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});}
+function trailFor(pid){return trail.filter(t=>t.project===pid).sort((a,b)=>b.at-a.at);}
+function renderTrail(){
+  const p=BY_ID[state.project];$("#trailTitle").textContent=p.name+" · Learning Trail";
+  const st=$("#stages");st.textContent="";const done=stages[p.id]||0;
+  STAGES[p.track].forEach((n,i)=>{const b=el("button",{type:"button",class:i<done?"done":"","aria-pressed":String(i<done)},el("b",{text:String(i+1)}),el("span",{text:n}));b.onclick=()=>setStage(p.id,i+1===done?i:i+1);st.append(b);});
+  const tl=$("#timeline");tl.textContent="";const items=trailFor(p.id);
+  if(!items.length){tl.append(el("li",{class:"empty",style:"display:block"},"Nothing logged yet. Ask the Brain a question, practise a judge question, or add what the team did today."));}
+  items.slice(0,80).forEach(t=>{
+    const label=t.kind==="ask"?"Asked the Brain":t.kind==="judge"?"Judge practice":t.kind==="stage"?"Stage finished":"Today we";
+    const body=el("div",{style:"min-width:0;display:grid;gap:4px"});
+    const head=el("div",{class:"chips"},el("span",{class:"kind",text:label}),el("span",{class:"chip",text:"Builder "+(t.role||"–")}));
+    if(COLORS[t.concept])head.append(el("span",{class:"chip c-"+t.concept,text:COLORS[t.concept]}));
+    if(t.kind==="judge"){head.append(el("span",{class:"chip",text:`Q${(t.q||0)+1} · ${t.score}/5`}));}
+    body.append(head,el("p",{text:t.text||""}));
+    if(t.answer&&t.kind!=="today")body.append(el("p",{class:"muted small",text:(t.kind==="judge"?"Next time: ":"Brain: ")+t.answer}));
+    tl.append(el("li",{},el("time",{text:fmt(t.at),style:"white-space:pre-line"}),body));
+  });
+  $("#dlBtn").hidden=!downloads;
+}
+async function setStage(pid,n){
+  stages[pid]=n;renderAll();
+  if(db){try{await db.doc("projects/"+pid).set({stage:n,updatedAt:Date.now()});}catch(e){}}else{ls.set("stages",stages);}
+  if(n>0)addTrail({kind:"stage",project:pid,role:state.role,text:`Finished Stage ${n}: ${STAGES[BY_ID[pid].track][n-1]}`});
+}
+$("#todayForm").onsubmit=e=>{e.preventDefault();const t=$("#todayBox").value.trim();if(!t)return;addTrail({kind:"today",project:state.project,role:state.role,text:t.slice(0,500)});$("#todayBox").value="";};
+async function addTrail(entry){
+  entry.at=Date.now();
+  if(db){try{await db.collection("trail").add(entry);return;}catch(e){if(e&&e.code==="quota_exceeded"){alertMsg("The trail is full. Ask the trainer to archive old entries.");}}}
+  trail.push(entry);ls.set("trail",trail.slice(-500));renderAll();
+}
+function alertMsg(t){$("#dlMsg").textContent=t;}
+$("#dlBtn").onclick=async()=>{
+  const p=BY_ID[state.project];const items=trailFor(p.id).slice().reverse();
+  const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const rows=items.map(t=>`<tr><td>${esc(new Date(t.at).toLocaleString("en-GB"))}</td><td>${esc(t.kind)}</td><td>Builder ${esc(t.role)}</td><td>${esc(t.text)}${t.kind==="judge"?` <b>(${t.score}/5)</b>`:""}</td></tr>`).join("");
+  const html=`<!doctype html><meta charset="utf-8"><title>${esc(p.name)} Learning Trail</title><style>body{font-family:system-ui,sans-serif;max-width:860px;margin:24px auto;padding:0 16px;color:#1A2847}table{border-collapse:collapse;width:100%}td{border-bottom:1px solid #DCE3EC;padding:8px;vertical-align:top;font-size:14px}h1{margin-bottom:4px}</style><h1>${esc(p.name)}</h1><p>${esc(p.school)} · ${esc(p.track)} · Stage ${stages[p.id]||0} of 5 finished</p><p><b>Problem:</b> ${esc(p.problem)}</p><table>${rows}</table><p style="color:#5B6578;font-size:12px">Logged with ByteBusters Brain.</p>`;
+  try{const r=await downloads.save({filename:`${p.id}-learning-trail.html`,data:html});$("#dlMsg").textContent=r.status==="saved"?"Saved.":"Sent.";}
+  catch(e){$("#dlMsg").textContent=e&&e.code==="cancelled"?"":"Saving didn't work here. Try again.";}
+};
+
+/* ---------- radar ---------- */
+function renderRadar(){
+  const now=Date.now();const box=$("#radar");box.textContent="";
+  const rows=P.map(p=>{
+    const items=trail.filter(t=>t.project===p.id);const st=stages[p.id]||0;
+    const js=items.filter(t=>t.kind==="judge");const avg=js.length?js.reduce((a,t)=>a+t.score,0)/js.length:null;
+    const last=items.reduce((m,t)=>Math.max(m,t.at),0);const idle=last?Math.floor((now-last)/86400000):null;
+    const cc={};items.forEach(t=>{if(COLORS[t.concept])cc[t.concept]=(cc[t.concept]||0)+1;});
+    const top=Object.entries(cc).sort((a,b)=>b[1]-a[1])[0];
+    let need=(5-st)*2+(avg!=null&&avg<3?3:0)+(idle==null?3:Math.min(idle,5));
+    const why=[];if(st<4)why.push(`only Stage ${st} done`);if(avg!=null&&avg<3)why.push(`judge average ${avg.toFixed(1)}`);if(idle==null)why.push("nothing logged");else if(idle>=3)why.push(`${idle} days quiet`);if(top&&top[1]>=2)why.push(`stuck on ${COLORS[top[0]]}`);
+    return {p,st,avg,idle,need,why,top};
+  }).sort((a,b)=>b.need-a.need);
+  rows.forEach(r=>{
+    const lvl=r.need>=12?"hot":r.need>=7?"warm":"ok";
+    const mini=el("div",{class:"mini","aria-label":`Stage ${r.st} of 5`});for(let i=1;i<=5;i++)mini.append(el("i",{class:i<=r.st?"on":""}));
+    const left=el("div",{style:"min-width:0;display:grid;gap:4px"},el("b",{text:r.p.name}),el("span",{class:"meta",text:`${r.p.school} · ${r.p.track}`}),mini,el("span",{class:"meta",text:r.why.length?r.why.join(" · "):"on track"}));
+    const right=el("div",{style:"display:grid;gap:6px;justify-items:end"},el("span",{class:"pill "+lvl,text:lvl==="hot"?"Visit first":lvl==="warm"?"Check in":"On track"}),el("span",{class:"meta",text:r.avg!=null?`Judge ${r.avg.toFixed(1)}/5`:"No judge practice"}));
+    const card=el("div",{class:"rcard "+lvl},left,right);card.style.cursor="pointer";card.onclick=()=>{sel.value=r.p.id;sel.onchange();document.querySelector('nav.tabs button[data-tab="trail"]').click();};
+    box.append(card);
+  });
+  // heat
+  const h=$("#heat");h.textContent="";const counts={};let max=0;
+  trail.forEach(t=>{if(!COLORS[t.concept])return;const s=BY_ID[t.project]&&BY_ID[t.project].school;if(!s)return;const k=s+"|"+t.concept;counts[k]=(counts[k]||0)+1;max=Math.max(max,counts[k]);});
+  if(!max){h.append(el("div",{class:"empty"},"Fills in as students ask the Brain questions."));return;}
+  const tb=el("table");const hr=el("tr",{},el("th",{text:"School"}));Object.keys(COLORS).forEach(k=>hr.append(el("th",{text:COLORS[k]})));tb.append(hr);
+  SCHOOLS.forEach(s=>{const tr=el("tr",{},el("th",{text:s.split(",")[0]}));Object.keys(COLORS).forEach(k=>{const n=counts[s+"|"+k]||0;const td=el("td",{text:String(n),class:n?"c-"+k:""});if(n)td.style.opacity=String(.45+.55*n/max);tr.append(td);});tb.append(tr);});
+  h.append(tb);
+}
+
+function renderAll(){projCard();renderStarters();renderChat();renderQs();renderQ();renderTrail();renderRadar();setStatus();}
+
+/* ---------- boot ---------- */
+trail=ls.get("trail",[]);stages=ls.get("stages",{});
+renderAll();
+(async()=>{
+  const c=window.claude;
+  if(!c||!c.use){aiOK=false;store="local";renderAll();return;}
+  const [s,d,dl]=await Promise.all([c.use("sample").catch(()=>null),c.use("db").catch(()=>null),c.use("downloads").catch(()=>null)]);
+  sample=s;downloads=dl;aiOK=!!s;
+  if(s){try{const lim=await s.limits();$("#photoWrap").hidden=!(lim&&lim.images);}catch(_){}}
+  if(d){
+    db=d;store="db";trail=[];stages={};
+    d.collection("trail").orderBy("at","desc").limit(1000).onSnapshot(snap=>{trail=snap.docs.map(x=>x.data());renderAll();},()=>{});
+    d.collection("projects").onSnapshot(snap=>{const o={};snap.docs.forEach(x=>{o[x.id]=Number(x.data().stage)||0;});stages=o;renderAll();},()=>{});
+  }else store="local";
+  renderAll();
+})();
+setInterval(countdown,60000);
+})();
+</script>
+
+<a href="/" id="bb-home" aria-label="Back to the home page" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;background:#0f3d5e;color:#fff;font:600 13px/1 system-ui,sans-serif;padding:9px 12px;border-radius:99px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:.88">&#8962; Home</a></body></html>

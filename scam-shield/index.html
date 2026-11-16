@@ -1,0 +1,455 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Scam Shield</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* =====================================================================
+   SCAM SHIELD v3 - THE LOOK
+   Layout: one column like a phone screen held up to a big screen.
+   ByteBusters colours: green and yellow. Red only means "danger".
+   ===================================================================== */
+:root {
+  --green: #1F6B2A;        /* ByteBusters green */
+  --green-dark: #123F19;
+  --yellow: #FDD835;       /* ByteBusters yellow */
+  --paper: #F5F7EF;        /* page background, a little green */
+  --ink: #142019;          /* text */
+  --muted: #55645A;
+  --bubble: #FFFFFF;
+  --danger: #C62828;
+  --miss: #E65100;
+  --font-display: "Baloo 2", "Trebuchet MS", sans-serif;
+  --font-body: "Atkinson Hyperlegible", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: clamp(17px, 1.6vw, 24px);
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 24px;
+}
+
+/* ---------- top bar ---------- */
+.topbar {
+  max-width: 980px;
+  margin: 0 auto;
+  padding-block: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 3px solid var(--yellow);
+}
+.brand { font-family: var(--font-display); font-weight: 800; font-size: 1.4em; color: var(--green-dark); display: flex; align-items: center; gap: 10px; }
+.shield {
+  width: 1.5em; height: 1.7em;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--green); color: var(--yellow);
+  border-radius: 0.3em 0.3em 0.9em 0.9em;
+  font-size: 0.8em;
+}
+.tag { color: var(--muted); font-size: 0.85em; letter-spacing: 0.04em; }
+
+/* ---------- screens ---------- */
+.screen { max-width: 980px; margin: 0 auto; padding-block: 28px; display: grid; gap: 18px; }
+.eyebrow { margin: 0; text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.75em; font-weight: 700; color: var(--green); }
+h1 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: clamp(36px, 5vw, 76px); line-height: 1.05; color: var(--green-dark); text-wrap: balance; }
+.lead { margin: 0; font-size: 1.15em; max-width: 40em; }
+
+.rules { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; counter-reset: step; }
+.rules li { counter-increment: step; background: var(--bubble); border: 2px solid #DCE3D3; border-radius: 14px; padding: 14px 16px; }
+.rules li::before { content: counter(step); display: inline-flex; width: 1.6em; height: 1.6em; margin-right: 8px; align-items: center; justify-content: center; border-radius: 50%; background: var(--yellow); color: var(--green-dark); font-weight: 700; }
+
+/* ---------- buttons ---------- */
+button.big {
+  justify-self: start;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.15em;
+  padding: 12px 28px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--green);
+  color: #FFFFFF;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--green-dark);
+}
+button.big:hover { background: var(--green-dark); }
+button.big:focus-visible { outline: 4px solid var(--yellow); outline-offset: 3px; }
+button.big:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--green-dark); }
+
+/* ---------- game screen ---------- */
+.status { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: baseline; font-weight: 700; color: var(--muted); }
+.status b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.clock { margin-left: auto; font-family: var(--font-mono); }
+.clock b { font-size: 1.6em; }
+
+.track { height: 12px; background: #DCE3D3; border-radius: 999px; overflow: hidden; }
+.bar { height: 100%; width: 100%; background: var(--green); transition: width 0.9s linear; }
+.bar.low { background: var(--danger); }
+
+.phone { background: #E7EDE0; border-radius: 22px; padding: 18px; display: grid; gap: 10px; }
+.from { font-family: var(--font-mono); font-size: 0.8em; color: var(--muted); }
+.from span { color: var(--ink); }
+.bubble {
+  background: var(--bubble);
+  border-radius: 6px 22px 22px 22px;
+  padding: 18px 22px;
+  font-size: clamp(22px, 2.6vw, 40px);
+  line-height: 1.7;
+  box-shadow: 0 2px 0 #CCD5C2;
+}
+
+/* the clickable pieces of a message */
+.piece { cursor: pointer; border-radius: 6px; padding: 2px 3px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.piece:hover { background: #FFF6C4; }
+.piece.picked { background: var(--yellow); }
+.piece.right  { background: #C8E6C9; outline: 3px solid var(--green); }
+.piece.missed { background: #FFE0B2; outline: 3px dashed var(--miss); }
+.piece.wrong  { background: #FFCDD2; text-decoration: line-through; text-decoration-color: var(--danger); }
+
+.actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.feedback:empty { display: none; }
+.feedback { background: var(--bubble); border-radius: 16px; padding: 14px 20px; border: 2px solid #DCE3D3; }
+.feedback .points { margin: 0 0 6px; font-family: var(--font-display); font-weight: 800; font-size: 1.4em; color: var(--green); }
+.feedback ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.feedback .good b { color: var(--green); }
+.feedback .miss b { color: var(--miss); }
+.feedback .bad b  { color: var(--danger); }
+
+/* ---------- result screen ---------- */
+.rule-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.rule-cards div { background: var(--green); color: #FFFFFF; border-radius: 16px; padding: 18px; }
+.rule-cards b { display: block; font-family: var(--font-display); font-size: 1.6em; color: var(--yellow); letter-spacing: 0.04em; }
+
+footer { max-width: 980px; margin: 0 auto; color: var(--muted); font-size: 0.8em; padding-block: 12px; border-top: 1px solid #DCE3D3; }
+
+[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bar { transition: none; }
+}
+
+</style>
+
+
+  <!-- THE TOP BAR: always showing -->
+  <header class="topbar">
+    <div class="brand"><span class="shield">S</span> Scam Shield</div>
+    <div class="tag">Yewa College · ByteBusters</div>
+  </header>
+
+  <!-- SCREEN 1: the start screen -->
+  <section id="start-screen" class="screen start">
+    <p class="eyebrow">A game for everyone in this room</p>
+    <h1>Can you spot the scam?</h1>
+    <p class="lead">5 real-looking messages. 30 seconds each. Tap every part that looks like a trick, then press Check.</p>
+    <ol class="rules">
+      <li><b>Read</b> the message.</li>
+      <li><b>Tap</b> the suspicious parts.</li>
+      <li><b>Check</b> and learn why.</li>
+    </ol>
+    <button id="start-button" class="big">Start the game</button>
+  </section>
+
+  <!-- SCREEN 2: the game screen -->
+  <section id="game-screen" class="screen game" hidden>
+    <div class="status">
+      <span id="progress">Message 1 of 5</span>
+      <span>Score <b id="score">0</b></span>
+      <span class="clock"><b id="time">30</b> s</span>
+    </div>
+    <div class="track"><div id="time-bar" class="bar"></div></div>
+
+    <div class="phone">
+      <div class="from">From: <span id="sender"></span></div>
+      <div id="bubble" class="bubble"></div>
+    </div>
+
+    <div class="actions">
+      <button id="check-button" class="big">Check my answer</button>
+      <button id="next-button" class="big" hidden>Next message</button>
+    </div>
+    <div id="feedback" class="feedback"></div>
+  </section>
+
+  <!-- SCREEN 3: the result screen -->
+  <section id="end-screen" class="screen end" hidden>
+    <p class="eyebrow">Your result</p>
+    <h1 id="end-title">Sharp Eyes!</h1>
+    <p id="end-score" class="lead"></p>
+    <div class="rule-cards">
+      <div><b>STOP</b>Do not rush. Hurry is the scammer's tool.</div>
+      <div><b>CHECK</b>Call the real person or bank on a number you already know.</div>
+      <div><b>TELL</b>Tell a trusted adult before you send anything.</div>
+    </div>
+    <button id="again-button" class="big">Play again</button>
+  </section>
+
+  <footer>Every message in this game is made up. Real scams change every day, so stay careful.</footer>
+  <script>
+// =====================================================================
+// SCAM SHIELD v3  -  Yewa College, ByteBusters
+// Our trainer prepared the starter. We wrote the messages and the lessons.
+// The script has 8 parts. Each part says who explains it on stage.
+// =====================================================================
+
+
+// ---------------------------------------------------------------------
+// PART 1. THE DATA  (Box Keeper)
+// A LIST of messages. Each message is cut into PARTS.
+// A part with  scam: true  is a warning sign. "why" is the lesson.
+// All messages are MADE UP. Add your own by copying one { ... } block.
+// ---------------------------------------------------------------------
+const messages = [
+  {
+    from: "+234 901 555 0101",
+    parts: [
+      { text: "CONGRATULATIONS! " },
+      { text: "You won ₦5,000,000 in the NaijaMega Draw!", scam: true, why: "You never entered a draw. A prize you did not enter is a trick." },
+      { text: " To get your prize, " },
+      { text: "send ₦20,000 processing fee", scam: true, why: "Real prizes never ask you to pay first." },
+      { text: " to account 0123456789 " },
+      { text: "within 24 hours.", scam: true, why: "Scammers rush you so you cannot think." },
+      { text: " " },
+      { text: "Do not tell anyone.", scam: true, why: "Scammers want secrecy. Always tell a trusted adult." }
+    ]
+  },
+  {
+    from: "HR-Jobs",
+    parts: [
+      { text: "We saw your CV! " },
+      { text: "Earn ₦150,000 every week working from home.", scam: true, why: "Too much money for too little work is a warning sign." },
+      { text: " " },
+      { text: "Pay ₦10,000 for your training kit", scam: true, why: "A real employer does not make you pay to get a job." },
+      { text: " to start today." }
+    ]
+  },
+  {
+    from: "FirstTrust Bank",
+    parts: [
+      { text: "Dear customer, your FirstTrust account " },
+      { text: "will be blocked today.", scam: true, why: "A threat and a deadline are used to scare you." },
+      { text: " Click " },
+      { text: "http://firsttrust-secure-login.example", scam: true, why: "A strange link is not your bank's real address. Never click it." },
+      { text: " and " },
+      { text: "enter your PIN and OTP", scam: true, why: "A bank never asks for your PIN or OTP." },
+      { text: " to verify." }
+    ]
+  },
+  {
+    from: "+234 812 555 0199",
+    parts: [
+      { text: "Hi Mum, " },
+      { text: "this is my new number.", scam: true, why: "Scammers pretend to be family. Check on the OLD number." },
+      { text: " I am in trouble and need ₦30,000 " },
+      { text: "urgently.", scam: true, why: "Hurry is a trick to stop you checking." },
+      { text: " " },
+      { text: "Please don't call,", scam: true, why: "They avoid a call because you would hear it is not them." },
+      { text: " just send it to this account." }
+    ]
+  },
+  {
+    from: "Investment Club",
+    parts: [
+      { text: "Invest ₦50,000 today and " },
+      { text: "get ₦200,000 in 7 days!", scam: true, why: "Nobody can really make 4 times your money in a week." },
+      { text: " " },
+      { text: "Guaranteed!", scam: true, why: "Real investments always have risk. 'Guaranteed' is a lie." },
+      { text: " " },
+      { text: "Only 10 slots left.", scam: true, why: "Fake pressure so you decide fast." }
+    ]
+  }
+];
+
+
+// ---------------------------------------------------------------------
+// PART 2. THE BOXES  (Box Keeper)
+// VARIABLES remember things while we play.
+// ---------------------------------------------------------------------
+const SECONDS_PER_MESSAGE = 30;   // the rule: 30 seconds for each message
+let current = 0;                  // which message we are on (0 = the first)
+let score = 0;                    // points so far
+let maxScore = 0;                 // points that were possible
+let timeLeft = 0;                 // seconds left on the clock
+let clock = null;                 // the running timer, so we can stop it
+
+// Find the parts of the page we will change (like finding rooms in a house)
+const startScreen = document.getElementById("start-screen");
+const gameScreen  = document.getElementById("game-screen");
+const endScreen   = document.getElementById("end-screen");
+const bubble      = document.getElementById("bubble");
+const sender      = document.getElementById("sender");
+const progress    = document.getElementById("progress");
+const scoreBox    = document.getElementById("score");
+const timeBox     = document.getElementById("time");
+const timeBar     = document.getElementById("time-bar");
+const feedback    = document.getElementById("feedback");
+const checkButton = document.getElementById("check-button");
+const nextButton  = document.getElementById("next-button");
+
+
+// ---------------------------------------------------------------------
+// PART 3. SHOW ONE MESSAGE  (Loop & Timer Lead)
+// A LOOP: for every part of the message, make one clickable piece.
+// ---------------------------------------------------------------------
+function showMessage() {
+  const message = messages[current];
+  sender.textContent = message.from;
+  progress.textContent = "Message " + (current + 1) + " of " + messages.length;
+  scoreBox.textContent = score;
+  bubble.innerHTML = "";
+  feedback.innerHTML = "";
+  checkButton.hidden = false;
+  nextButton.hidden = true;
+
+  for (const part of message.parts) {
+    const piece = document.createElement("span");
+    piece.textContent = part.text;
+    piece.className = "piece";
+    piece.addEventListener("click", pickPiece);     // PART 4 runs on a click
+    bubble.appendChild(piece);
+  }
+
+  startClock();                                     // PART 6
+}
+
+
+// ---------------------------------------------------------------------
+// PART 4. CLICK A PIECE  (Messenger)
+// An EVENT: when a piece is clicked, it is picked (or un-picked).
+// ---------------------------------------------------------------------
+function pickPiece(event) {
+  if (checkButton.hidden) { return; }               // already checked: do nothing
+  event.target.classList.toggle("picked");
+}
+
+
+// ---------------------------------------------------------------------
+// PART 5. CHECK THE ANSWER  (Decider)
+// IF / ELSE IF: every piece gets one of 4 results.
+// ---------------------------------------------------------------------
+function checkAnswer() {
+  stopClock();
+  const message = messages[current];
+  const pieces = bubble.children;
+  let found = 0;
+  let wrong = 0;
+  let notes = "";
+
+  for (let i = 0; i < message.parts.length; i++) {
+    const part = message.parts[i];
+    const piece = pieces[i];
+    const picked = piece.classList.contains("picked");
+
+    if (part.scam && picked) {                      // a warning sign, and you caught it
+      piece.className = "piece right";
+      found = found + 1;
+      notes += "<li class='good'><b>Caught:</b> " + part.why + "</li>";
+    } else if (part.scam && !picked) {              // a warning sign you missed
+      piece.className = "piece missed";
+      notes += "<li class='miss'><b>Missed \"" + part.text.trim() + "\":</b> " + part.why + "</li>";
+    } else if (!part.scam && picked) {              // a normal part you picked by mistake
+      piece.className = "piece wrong";
+      wrong = wrong + 1;
+    } else {
+      piece.className = "piece";                    // normal part, left alone: correct
+    }
+  }
+
+  const signs = message.parts.filter(function (part) { return part.scam; }).length;
+  const points = Math.max(0, found - wrong);         // a wrong pick costs 1 point
+  score = score + points;
+  maxScore = maxScore + signs;
+  scoreBox.textContent = score;
+
+  let wrongNote = "";
+  if (wrong > 0) { wrongNote = "<li class='bad'><b>" + wrong + " normal part(s) picked.</b> Not every word is a warning sign.</li>"; }
+  feedback.innerHTML = "<p class='points'>+" + points + " of " + signs + " points</p><ul>" + notes + wrongNote + "</ul>";
+
+  checkButton.hidden = true;
+  nextButton.hidden = false;
+  if (current === messages.length - 1) { nextButton.textContent = "See my result"; }
+  else { nextButton.textContent = "Next message"; }
+}
+
+
+// ---------------------------------------------------------------------
+// PART 6. THE CLOCK  (Loop & Timer Lead)
+// A TIMER: every 1 second, take 1 away. At 0, check automatically.
+// ---------------------------------------------------------------------
+function startClock() {
+  timeLeft = SECONDS_PER_MESSAGE;
+  showTime();
+  clock = setInterval(function () {
+    timeLeft = timeLeft - 1;
+    showTime();
+    if (timeLeft <= 0) { checkAnswer(); }           // time is up
+  }, 1000);
+}
+
+function stopClock() {
+  clearInterval(clock);
+}
+
+function showTime() {
+  timeBox.textContent = timeLeft;
+  timeBar.style.width = (timeLeft / SECONDS_PER_MESSAGE * 100) + "%";
+  timeBar.classList.toggle("low", timeLeft <= 10);
+}
+
+
+// ---------------------------------------------------------------------
+// PART 7. NEXT MESSAGE OR THE RESULT  (Decider, Closer)
+// IF there is another message, show it. ELSE show the result.
+// ---------------------------------------------------------------------
+function nextMessage() {
+  current = current + 1;
+  if (current < messages.length) {
+    showMessage();
+    return;
+  }
+  const percent = Math.round(score / maxScore * 100);
+  let title = "Scam Spotter in training";
+  if (percent >= 80) { title = "Scam Shield Champion!"; }
+  else if (percent >= 50) { title = "Sharp Eyes!"; }
+  document.getElementById("end-title").textContent = title;
+  document.getElementById("end-score").textContent = score + " of " + maxScore + " warning signs (" + percent + "%)";
+  gameScreen.hidden = true;
+  endScreen.hidden = false;
+}
+
+
+// ---------------------------------------------------------------------
+// PART 8. START AND THE BUTTONS  (Messenger)
+// EVENTS: each button runs one part of the script.
+// ---------------------------------------------------------------------
+function startGame() {
+  current = 0;
+  score = 0;
+  maxScore = 0;
+  startScreen.hidden = true;
+  endScreen.hidden = true;
+  gameScreen.hidden = false;
+  showMessage();
+}
+
+document.getElementById("start-button").addEventListener("click", startGame);
+document.getElementById("again-button").addEventListener("click", startGame);
+checkButton.addEventListener("click", checkAnswer);
+nextButton.addEventListener("click", nextMessage);
+
+</script>
+
+<a href="/" id="bb-home" aria-label="Back to the home page" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;background:#0f3d5e;color:#fff;font:600 13px/1 system-ui,sans-serif;padding:9px 12px;border-radius:99px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:.88">&#8962; Home</a></body></html>

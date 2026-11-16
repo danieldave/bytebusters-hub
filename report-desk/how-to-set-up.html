@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Report Desk Setup Guide</title>
+<style>
+  :root { --green: #0F6B3E; --deep: #0B4F2E; --gold: #F3C324; --ink: #15231B; --muted: #5A6A5F; --line: #DCE4D8; --paper: #F5F8F2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 "Segoe UI", Arial, sans-serif; }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 28px 18px 60px; }
+  header { background: var(--deep); color: #fff; border-radius: 14px; padding: 22px 24px; }
+  header small { color: var(--gold); font-weight: 700; letter-spacing: .08em; }
+  h1 { margin: 4px 0 6px; font-size: 28px; line-height: 1.2; }
+  header p { margin: 0; opacity: .9; }
+  h2 { margin: 34px 0 6px; font-size: 21px; color: var(--deep); display: flex; gap: 10px; align-items: baseline; }
+  h2 span { background: var(--gold); color: #3D2F00; border-radius: 8px; padding: 0 9px; font-size: 15px; }
+  .time { color: var(--muted); margin: 0 0 10px; font-size: 14px; }
+  ol { padding-left: 0; list-style: none; counter-reset: step; margin: 0; }
+  ol > li { counter-increment: step; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 14px 58px; margin-bottom: 10px; position: relative; }
+  ol > li::before { content: counter(step); position: absolute; left: 14px; top: 13px; width: 30px; height: 30px; border-radius: 50%; background: var(--green); color: #fff; font-weight: 700; display: grid; place-items: center; }
+  b.click { background: #EAF3EC; border: 1px solid #C7DCCB; border-radius: 6px; padding: 0 6px; white-space: nowrap; }
+  code { background: #1E2A22; color: #F3F7F2; border-radius: 6px; padding: 1px 7px; font-size: 14px; word-break: break-all; }
+  .note { background: #FFF5D1; border-left: 5px solid var(--gold); border-radius: 0 10px 10px 0; padding: 10px 14px; margin: 10px 0; }
+  .warn { background: #FDECE8; border-left: 5px solid #C2412D; border-radius: 0 10px 10px 0; padding: 10px 14px; margin: 10px 0; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+  td, th { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: #EAF3EC; font-size: 14px; }
+  ul { margin: 6px 0 0; padding-left: 20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <small>BYTEBUSTERS REPORT DESK · VERSION 1</small>
+    <h1>Put the Report Desk online</h1>
+    <p>About 15 minutes, on a laptop. You need your Gmail account and a Netlify account.</p>
+  </header>
+
+  <h2>What is in this folder</h2>
+  <table>
+    <tr><th>File</th><th>What it does</th></tr>
+    <tr><td><b>upload-to-netlify/index.html</b></td><td>The Report Desk page. This is what your team opens on their phones.</td></tr>
+    <tr><td><b>google-sheet-script/Code.gs</b></td><td>The script that turns a Google Sheet into the desk's storage and sends reports to your Gmail.</td></tr>
+    <tr><td><b>HOW-TO-SET-UP.html</b></td><td>This guide.</td></tr>
+  </table>
+
+  <h2><span>Part A</span> Make the Google Sheet</h2>
+  <p class="time">About 10 minutes. Do this once.</p>
+  <ol>
+    <li>Sign in to the Gmail account that should own all the records. Open <b>sheets.new</b> in the browser. A new, empty Google Sheet opens. Name it <b>ByteBusters Report Desk</b> (click "Untitled spreadsheet" at the top left).</li>
+    <li>Click <b class="click">Extensions</b> then <b class="click">Apps Script</b>. A new tab opens with a file called <b>Code.gs</b>.</li>
+    <li>Select everything in that file and delete it. Open <b>google-sheet-script/Code.gs</b> from this folder in Notepad, copy all of it, and paste it in. Click the <b class="click">Save</b> icon (the floppy disk).</li>
+    <li>Click the <b class="click">⚙ Project Settings</b> gear on the left. Under Time zone, choose <b>(GMT+01:00) Lagos</b>. Then click <b class="click">&lt;&gt; Editor</b> to go back.</li>
+    <li>At the top, in the box next to <b class="click">▷ Run</b>, choose <b>setup</b>. Click <b class="click">▷ Run</b>.
+      <div class="note">Google asks for permission. Click <b class="click">Review permissions</b>, choose your Gmail account, then <b class="click">Advanced</b> and <b class="click">Go to ByteBusters Report Desk (unsafe)</b>, then <b class="click">Allow</b>. Google shows this warning for every script you write yourself; this one only touches this Sheet and sends email from your account.</div></li>
+    <li>Go back to the Sheet tab. You now have four tabs: <b>Settings</b>, <b>Sessions</b>, <b>Classes</b> and <b>Curriculum</b> (all 35 rows of the 4-year curriculum). Open <b>Settings</b> and write down:
+      <ul><li><b>teamPin</b>: the PIN for trainers and support staff (4 digits).</li>
+      <li><b>adminPin</b>: your own PIN (6 digits). Never share it.</li>
+      <li>Check <b>reportEmail</b> is your Gmail. To send reports to more than one person, separate the addresses with commas.</li></ul></li>
+    <li>Optional check: back in Apps Script, choose <b>sendTestEmail</b> and click <b class="click">▷ Run</b>. A test email arrives in your Gmail within a minute.</li>
+    <li>Click the blue <b class="click">Deploy</b> button, then <b class="click">New deployment</b>. Click the gear next to "Select type" and choose <b class="click">Web app</b>. Set:
+      <ul><li>Description: <b>Report Desk v1</b></li><li>Execute as: <b>Me</b></li><li>Who has access: <b>Anyone</b></li></ul>
+      Click <b class="click">Deploy</b>. Copy the <b>Web app URL</b>. It ends in <code>/exec</code>.
+      <div class="note">"Anyone" only means the page can reach the Sheet. Nobody can read or add anything without the team PIN.</div></li>
+  </ol>
+
+  <h2><span>Part B</span> Connect the page</h2>
+  <p class="time">About 2 minutes.</p>
+  <ol>
+    <li>Right-click <b>upload-to-netlify/index.html</b>, choose <b class="click">Open with</b> then <b class="click">Notepad</b>.</li>
+    <li>Near the top, find this line:<br><code>&lt;script&gt;window.RD_API = "";&lt;/script&gt;</code><br>Paste your Web app URL between the two quotes, so it looks like:<br><code>&lt;script&gt;window.RD_API = "https://script.google.com/macros/s/AKfy.../exec";&lt;/script&gt;</code><br>Save the file.</li>
+    <li>Test it: double-click <b>index.html</b> to open it in your browser. Type your <b>adminPin</b>, log one test session, and check your Gmail for the "Session logged" email. Delete the test session afterwards (you can, because you used the admin PIN).</li>
+  </ol>
+
+  <h2><span>Part C</span> Put it on Netlify</h2>
+  <p class="time">About 2 minutes.</p>
+  <ol>
+    <li>Open <b>app.netlify.com/drop</b> and sign in.</li>
+    <li>Drag the whole <b>upload-to-netlify</b> folder onto the page. Netlify gives you a link straight away.</li>
+    <li>Optional: in Netlify, open <b class="click">Site configuration</b> then <b class="click">Change site name</b>, and choose something like <b>bytebusters-report-desk</b>. Your link becomes <code>bytebusters-report-desk.netlify.app</code>.</li>
+    <li>Send your team the link and the <b>team PIN</b> on WhatsApp. They open it on their phones, type the PIN once, and the phone remembers it.</li>
+  </ol>
+
+  <h2>How it works every day</h2>
+  <table>
+    <tr><th>Who</th><th>What they do</th></tr>
+    <tr><td>Trainers and support staff (team PIN)</td><td>Open the link after each class, tap <b>Log a session</b>, fill it in, tap Save. They can view reports, download Word files and edit sessions.</td></tr>
+    <tr><td>You (admin PIN)</td><td>Everything the team can do, plus: delete sessions, change classes, change the curriculum, and change report details. Team members can also unlock editing with your PIN in <b>Centres &amp; setup</b>.</td></tr>
+    <tr><td>Your Gmail</td><td>An email for every logged session (switch this off in Centres &amp; setup if it is too many), plus the <b>weekly report every Friday at 6pm</b>. Use <b>Email this report</b> on the Reports tab to send any other report to yourself.</td></tr>
+    <tr><td>Your Google Sheet</td><td>Every session is one row in the <b>Sessions</b> tab. It is your permanent record, and you can filter it or print it.</td></tr>
+  </table>
+
+  <h2>Good to know</h2>
+  <ul>
+    <li><b>Change a PIN:</b> type a new value in the Settings tab of the Sheet. It works straight away. Everyone with the old PIN is asked for the new one.</li>
+    <li><b>Change the weekly email day or time:</b> edit <b>weeklyDay</b> and <b>weeklyHour</b> in Settings, then in Apps Script run <b>installWeeklyEmail</b> once.</li>
+    <li><b>If you ever change Code.gs:</b> Deploy, then Manage deployments, the pencil icon, Version: <b>New version</b>, then Deploy. The link stays the same.</li>
+    <li><b>Email limit:</b> a free Gmail account can send about 100 emails a day from a script. That is plenty for a few sessions a day plus reports.</li>
+    <li><b>Children's privacy:</b> use first names only, or no names. Reports are about the class, not one child.</li>
+  </ul>
+  <div class="warn"><b>Keep the admin PIN private.</b> Anyone with it can delete sessions and change the curriculum.</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "static-site-with-api",
+  "private": true,
+  "description": "Static pages plus a few Vercel serverless functions in /api.",
+  "engines": { "node": ">=18" }
+}

@@ -1,0 +1,360 @@
+<!doctype html><html><head><script src="/claude-shim.js"></script><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ByteBusters AI Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: three AI tools behind one tab bar; each tool = input sheet + answer sheet + "How it works" pipeline that shows the real prompt. Signature: the pipeline strip Input → Privacy filter → Prompt → AI → Guardrails → Answer. */
+:root{
+  --paper:#F4F4F8; --sheet:#FFFFFF; --ink:#1E1B3A; --muted:#5E5A78; --rule:#DDDAEA;
+  --accent:#5B34C9; --accent-ink:#FFFFFF; --soft:#EEE9FB; --tint:#F7F4FF;
+  --good:#178A4C; --good-bg:#DFF3E7; --warn:#A35E00; --warn-bg:#FFF1D6; --bad:#C53030; --bad-bg:#FBE5E5;
+  --naira:#0B7A55;
+  --f-display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#13111F; --sheet:#1C1930; --ink:#ECE9FB; --muted:#A6A1C4; --rule:#2F2A4A;
+  --accent:#A992FF; --accent-ink:#17122E; --soft:#2A2448; --tint:#211C3A;
+  --good:#6FD69B; --good-bg:#16332A; --warn:#F2C26B; --warn-bg:#3A2D12; --bad:#FF8A8A; --bad-bg:#3A1F22; --naira:#5FD3A6; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#13111F; --sheet:#1C1930; --ink:#ECE9FB; --muted:#A6A1C4; --rule:#2F2A4A;
+  --accent:#A992FF; --accent-ink:#17122E; --soft:#2A2448; --tint:#211C3A;
+  --good:#6FD69B; --good-bg:#16332A; --warn:#F2C26B; --warn-bg:#3A2D12; --bad:#FF8A8A; --bad-bg:#3A1F22; --naira:#5FD3A6; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:0 56px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:2px solid var(--rule)}
+.topin{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:14px 0;display:grid;gap:8px}
+.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.logo{font-family:var(--f-display);font-weight:800;font-size:1.5rem;letter-spacing:-.02em}
+.tag{font-size:.82rem;color:var(--muted)}
+nav.tabs{display:flex;gap:2px;overflow-x:auto}
+nav.tabs button{flex:1 0 auto;padding:10px 14px;border:0;background:none;cursor:pointer;font-weight:700;color:var(--muted);border-bottom:4px solid transparent;text-align:left}
+nav.tabs button small{display:block;font-weight:400;font-size:.72rem}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.privacy{display:flex;gap:10px;align-items:flex-start;background:var(--tint);border:1px solid var(--rule);border-radius:12px;padding:10px 12px;font-size:.85rem;margin-top:16px}
+.privacy b{white-space:nowrap}
+.status{font-size:.8rem;color:var(--muted);margin-top:8px}
+section.tool{display:grid;gap:16px;padding-block:18px 0}
+.intro{display:grid;gap:4px}
+h1,h2{font-family:var(--f-display);margin:0;letter-spacing:-.015em;text-wrap:balance}
+h1{font-size:1.6rem;font-weight:800}
+h2{font-size:1.1rem;font-weight:600}
+p{margin:0}
+.muted{color:var(--muted)} .small{font-size:.85rem}
+.eyebrow{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.cols{display:grid;gap:16px;grid-template-columns:1fr}
+@media (min-width:880px){.cols{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}}
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:16px;min-width:0;display:grid;gap:12px;align-content:start}
+.field{display:grid;gap:6px}
+.field label,.field .lbl{font-weight:700;font-size:.9rem}
+input[type=text],input[type=number],select,textarea{width:100%;padding:10px 12px;border:2px solid var(--rule);border-radius:10px;background:var(--sheet)}
+textarea{min-height:96px;resize:vertical}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:2px solid var(--rule);background:var(--sheet);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:.85rem}
+.chips button[aria-pressed="true"]{border-color:var(--accent);background:var(--soft);color:var(--accent);font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:0;border-radius:10px;padding:11px 18px;font-weight:700;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--sheet);color:var(--ink);border:2px solid var(--rule)}
+.btn:disabled{opacity:.55;cursor:default}
+.spacer{flex:1}
+.ans{display:grid;gap:12px}
+.ans .big{font-family:var(--f-display);font-weight:800;font-size:1.3rem;line-height:1.2}
+.ans ul,.ans ol{margin:0;padding-left:20px;display:grid;gap:4px}
+.card{border:1px solid var(--rule);border-radius:12px;padding:12px;display:grid;gap:6px;background:var(--tint)}
+.card h3{font-family:var(--f-display);font-weight:600;font-size:1.05rem;margin:0}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.75rem;font-weight:700;background:var(--soft);color:var(--accent)}
+.pill.high{background:var(--bad-bg);color:var(--bad)} .pill.medium{background:var(--warn-bg);color:var(--warn)} .pill.low{background:var(--good-bg);color:var(--good)}
+.example-flag{font-size:.75rem;font-weight:700;color:var(--warn);background:var(--warn-bg);border-radius:8px;padding:4px 8px;justify-self:start}
+.empty{border:2px dashed var(--rule);border-radius:12px;padding:18px;color:var(--muted);text-align:center}
+.thinking::after{content:"";animation:dots 1.2s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+@media (prefers-reduced-motion:reduce){.thinking::after{animation:none;content:"..."}}
+/* numbers */
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat div{border-radius:12px;padding:10px 12px;background:var(--tint);border:1px solid var(--rule)}
+.stat b{display:block;font-family:var(--f-mono);font-size:1.25rem;font-variant-numeric:tabular-nums}
+.stat span{font-size:.78rem;color:var(--muted)}
+.bars{display:grid;gap:8px}
+.bar{display:grid;grid-template-columns:120px minmax(0,1fr) 64px;gap:8px;align-items:center;font-size:.82rem}
+.bar .track{height:14px;border-radius:7px;background:var(--rule);overflow:hidden}
+.bar .fill{height:100%;border-radius:7px;background:var(--accent)}
+.bar .fill.nat{background:var(--muted)}
+.bar b{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+/* pipeline */
+details.how{border:1px solid var(--rule);border-radius:14px;background:var(--sheet)}
+details.how summary{cursor:pointer;padding:12px 16px;font-weight:700}
+details.how .in{padding:0 16px 16px;display:grid;gap:12px}
+.pipe{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.8rem}
+.pipe span{background:var(--soft);border-radius:8px;padding:5px 9px;font-weight:700}
+.pipe i{color:var(--muted);font-style:normal}
+pre.prompt{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-family:var(--f-mono);font-size:.78rem;background:var(--tint);border:1px solid var(--rule);border-radius:10px;padding:12px;max-height:320px;overflow:auto}
+.removed{font-size:.8rem;color:var(--good);font-weight:700}
+.copyrow{display:flex;gap:8px;align-items:center}
+.src{font-size:.75rem;color:var(--muted)}
+.src a{color:inherit}
+</style>
+
+<header class="top">
+  <div class="topin">
+    <div class="brand"><span class="logo">ByteBusters AI Lab</span><span class="tag">Three AI tools built by the Yewa College Gen AI team</span></div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="inflation" aria-selected="true">Inflation Explainer AI<small>Why prices rise, in plain words</small></button>
+      <button role="tab" data-tab="career" aria-selected="false">Naija Career Compass AI<small>Careers that fit you</small></button>
+      <button role="tab" data-tab="voice" aria-selected="false">Community Voice AI<small>Turn complaints into clear reports</small></button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="privacy" role="note"><b>No personal data.</b><span>There is no sign-up and nothing is saved. Before anything reaches the AI, a privacy filter removes phone numbers, emails, account or ID numbers and names after "my name is". You can see exactly what was sent under "How it works".</span></div>
+  <p class="status" id="status">Starting the AI<span class="thinking"></span></p>
+
+  <!-- INFLATION -->
+  <section class="tool" id="tab-inflation">
+    <div class="intro"><h1>Inflation Explainer AI</h1><p class="muted">Tell it what something cost before and what it costs now. The app does the maths, and the AI explains what is happening in simple words with Nigerian examples.</p></div>
+    <div class="cols">
+      <form class="sheet" id="infForm">
+        <div class="field"><label for="infItem">Item</label>
+          <input type="text" id="infItem" list="infItems" value="Bag of rice (50kg)">
+          <datalist id="infItems"><option value="Bag of rice (50kg)"><option value="Loaf of bread"><option value="Paint bucket of garri"><option value="Crate of eggs"><option value="Litre of petrol"><option value="Danfo fare to school"><option value="Exercise book"><option value="Sachet water (bag)"></datalist></div>
+        <div class="two">
+          <div class="field"><label for="infOld">Price before (₦)</label><input type="number" id="infOld" min="1" step="any" value="68000"></div>
+          <div class="field"><label for="infNew">Price now (₦)</label><input type="number" id="infNew" min="1" step="any" value="82000"></div>
+          <div class="field"><label for="infMonths">How long ago? (months)</label><input type="number" id="infMonths" min="1" max="120" value="12"></div>
+        </div>
+        <div class="field"><label for="infQ">Your question (optional)</label><textarea id="infQ" placeholder="Example: Why did rice go up more than other things?"></textarea></div>
+        <div class="row"><button class="btn" type="submit" id="infBtn">Explain it</button><span class="spacer"></span><label class="small row" style="gap:6px"><input type="checkbox" class="deep"> Deeper answer</label></div>
+        <p class="src">National figures: Nigeria headline inflation 15.39% and food inflation 19.57% (year-on-year, August 2026, NBS), reported by <a href="https://nairametrics.com/2026/09/15/nigerias-headline-inflation-eases-to-15-39-in-august/" target="_blank" rel="noopener">Nairametrics, 15 Sep 2026</a>. NBS publishes a new figure each month.</p>
+      </form>
+      <div class="sheet" aria-live="polite">
+        <p class="eyebrow">The maths (done by our code)</p>
+        <div class="stat" id="infStats"></div>
+        <div class="bars" id="infBars"></div>
+        <p class="eyebrow">The AI's explanation</p>
+        <div class="ans" id="infOut"></div>
+      </div>
+    </div>
+    <details class="how" id="how-inflation"><summary>How it works</summary><div class="in"></div></details>
+  </section>
+
+  <!-- CAREER -->
+  <section class="tool" id="tab-career" hidden>
+    <div class="intro"><h1>Naija Career Compass AI</h1><p class="muted">Pick what you enjoy. The AI suggests three careers with real Nigerian routes into them: university, polytechnic or learning a trade. No name or age needed.</p></div>
+    <div class="cols">
+      <form class="sheet" id="carForm">
+        <div class="field"><span class="lbl">I enjoy…</span><div class="chips" id="carInterests"></div></div>
+        <div class="field"><span class="lbl">Subjects I like</span><div class="chips" id="carSubjects"></div></div>
+        <div class="two">
+          <div class="field"><label for="carLevel">My school level</label><select id="carLevel"><option>Primary school</option><option selected>Junior secondary (JSS)</option><option>Senior secondary (SSS)</option></select></div>
+          <div class="field"><label for="carPlace">I'd rather work</label><select id="carPlace"><option>Indoors</option><option>Outdoors</option><option selected>A mix of both</option></select></div>
+          <div class="field"><label for="carPeople">I work best</label><select id="carPeople"><option>With lots of people</option><option selected>In a small team</option><option>Mostly on my own</option></select></div>
+        </div>
+        <div class="field"><label for="carDream">Anything else? (optional)</label><textarea id="carDream" placeholder="Example: I like fixing my uncle's phone and I want to help my community."></textarea></div>
+        <div class="row"><button class="btn" type="submit" id="carBtn">Find my careers</button><span class="spacer"></span><label class="small row" style="gap:6px"><input type="checkbox" class="deep"> Deeper answer</label></div>
+      </form>
+      <div class="sheet" aria-live="polite"><p class="eyebrow">Your compass</p><div class="ans" id="carOut"></div></div>
+    </div>
+    <details class="how" id="how-career"><summary>How it works</summary><div class="in"></div></details>
+  </section>
+
+  <!-- VOICE -->
+  <section class="tool" id="tab-voice" hidden>
+    <div class="intro"><h1>Community Voice AI</h1><p class="muted">Describe a problem in your community the way you would tell a friend. The AI turns it into a clear, polite report you can give to the right office.</p></div>
+    <div class="cols">
+      <form class="sheet" id="vForm">
+        <div class="two">
+          <div class="field"><label for="vType">Problem type</label><select id="vType"><option>Bad road or flooding</option><option>No clean water</option><option>Waste and refuse</option><option>Electricity (no light)</option><option>School facilities</option><option>Market or traffic</option><option>Health centre</option><option>Other</option></select></div>
+          <div class="field"><label for="vPlace">Where</label><select id="vPlace"><option>A street in town</option><option>A village</option><option>A school</option><option>A market</option></select></div>
+          <div class="field"><label for="vLong">How long?</label><select id="vLong"><option>Less than a month</option><option selected>A few months</option><option>More than a year</option></select></div>
+        </div>
+        <div class="field"><span class="lbl">Who is affected?</span><div class="chips" id="vWho"></div></div>
+        <div class="field"><label for="vText">Describe the problem</label><textarea id="vText">The road to our school floods every time it rains. Pupils wade through dirty water and some miss class. Okadas fall in the potholes.</textarea></div>
+        <p class="small muted">Please don't write people's names or house numbers. Describe the problem, not the person.</p>
+        <div class="row"><button class="btn" type="submit" id="vBtn">Write my report</button><span class="spacer"></span><label class="small row" style="gap:6px"><input type="checkbox" class="deep"> Deeper answer</label></div>
+      </form>
+      <div class="sheet" aria-live="polite"><p class="eyebrow">Your report</p><div class="ans" id="vOut"></div></div>
+    </div>
+    <details class="how" id="how-voice"><summary>How it works</summary><div class="in"></div></details>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const el=(t,a={},...k)=>{const e=document.createElement(t);for(const[x,v]of Object.entries(a)){if(x==="class")e.className=v;else if(x==="text")e.textContent=v;else e.setAttribute(x,v);}k.forEach(c=>c!=null&&e.append(c));return e;};
+const naira=n=>"₦"+Math.round(n).toLocaleString("en-NG");
+let sample=null, aiOK=null;
+const NATIONAL={headline:15.39,food:19.57,month:"August 2026",source:"NBS, reported by Nairametrics on 15 Sep 2026"};
+
+/* ---------- privacy filter ---------- */
+function scrub(text){
+  let t=String(text||""),removed=[];
+  const rules=[
+    [/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,"[email removed]","email"],
+    [/(\+?234[\s-]?|\b0)[789][01]\d[\s-]?\d{3}[\s-]?\d{4}\b/g,"[phone removed]","phone number"],
+    [/\b\d(?:[\s-]?\d){12,18}\b/g,"[card number removed]","card number"],
+    [/\b\d{10,11}\b/g,"[account/ID number removed]","account or ID number"],
+    [/\b(my name is|i am called|i'm called|call me)\s+[A-Z][a-z]+(\s+[A-Z][a-z]+)?/gi,"$1 [name removed]","name"]
+  ];
+  for(const[re,rep,label]of rules){const m=t.match(re);if(m){removed.push(m.length+" "+label+(m.length>1?"s":""));t=t.replace(re,rep);}}
+  return {text:t,removed};
+}
+const RULES_COMMON="Never ask for or repeat personal details (names, phone numbers, addresses, ages). If the input contains [removed] markers, ignore them. Use simple English a 12-year-old understands. Be warm, accurate and practical for Nigeria. Do not invent statistics: use only numbers given in this prompt.";
+
+/* ---------- tabs ---------- */
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav.tabs button").forEach(x=>x.setAttribute("aria-selected",String(x===b)));["inflation","career","voice"].forEach(t=>$("#tab-"+t).hidden=t!==b.dataset.tab);try{history.replaceState(null,"","#"+b.dataset.tab);}catch(_){}});
+if(/^#(inflation|career|voice)$/.test(location.hash))document.querySelector(`nav.tabs button[data-tab="${location.hash.slice(1)}"]`).click();
+function chipGroup(box,items,pre){items.forEach(i=>{const b=el("button",{type:"button","aria-pressed":String(pre.includes(i)),text:i});b.onclick=()=>b.setAttribute("aria-pressed",String(b.getAttribute("aria-pressed")!=="true"));$(box).append(b);});}
+const picked=box=>[...document.querySelectorAll(box+' button[aria-pressed="true"]')].map(b=>b.textContent);
+chipGroup("#carInterests",["Building things","Helping people","Computers & tech","Drawing & design","Numbers & money","Farming & nature","Talking & persuading","Science & health","Music & performing","Fixing machines","Cooking & food","Sports"],["Computers & tech","Helping people"]);
+chipGroup("#carSubjects",["Maths","English","Basic Science","Biology","Chemistry","Physics","Agric","Fine Art","Computer Studies","Business Studies","Civic Education","Home Economics"],["Maths","Computer Studies"]);
+chipGroup("#vWho",["Pupils","Elders","Traders","Farmers","Women and girls","People with disabilities","Drivers and okada riders","Everyone"],["Pupils","Drivers and okada riders"]);
+
+/* ---------- how it works ---------- */
+const HOW={
+ inflation:{logic:"Variables hold the two prices and the months. Our code works out the percentage change and the yearly rate (maths in JavaScript, so the numbers are exact). A conditional compares your item with the national rate. Then the AI explains in words.",guard:["The AI may only use the numbers we give it, so it can't make up statistics.","The maths is done by code, not by the AI.","Answers are kept short and in simple English.","No personal details go in or come out."]},
+ career:{logic:"Your choices are collected into lists (variables). The prompt asks for exactly three careers as JSON, and our code turns the JSON into cards.",guard:["Every career must have a Nigerian route: university, polytechnic or trade.","The AI must never say a career is not for you because of who you are.","At least one suggestion must be a skilled trade or hands-on path.","No name or age is collected."]},
+ voice:{logic:"Your choices and description are joined into one prompt. The AI returns a report as JSON, and a conditional colours the urgency pill red, amber or green.",guard:["No names of people and no blame or insults: it reports the problem, not a person.","Polite, respectful tone to officials.","Suggests the kind of office to send it to, not a made-up person.","Phone numbers and IDs are removed before sending."]}
+};
+function renderHow(key,prompt,removed){
+  const box=$("#how-"+key+" .in");box.textContent="";const h=HOW[key];
+  const pipe=el("div",{class:"pipe"});["Your input","Privacy filter","Prompt","AI","Guardrails check","Answer on screen"].forEach((s,i)=>{if(i)pipe.append(el("i",{text:"→"}));pipe.append(el("span",{text:s}));});
+  box.append(pipe,el("p",{},el("b",{text:"The logic: "}),h.logic));
+  const ul=el("ul",{style:"margin:0;padding-left:20px"});h.guard.forEach(g=>ul.append(el("li",{text:g})));box.append(el("p",{},el("b",{text:"Guardrails"})),ul);
+  if(prompt){box.append(el("p",{},el("b",{text:"Exactly what was sent to the AI"})));if(removed&&removed.length)box.append(el("p",{class:"removed",text:"Privacy filter removed: "+removed.join(", ")}));else box.append(el("p",{class:"small muted",text:"Privacy filter: nothing personal found."}));box.append(el("pre",{class:"prompt",text:prompt}));}
+  else box.append(el("p",{class:"small muted",text:"Run the tool once to see the exact prompt that was sent."}));
+}
+["inflation","career","voice"].forEach(k=>renderHow(k));
+
+function deep(form){return form.querySelector(".deep").checked?"default":"quick";}
+function errCopy(e){const c=e&&e.code;return c==="not_granted"?"The AI is not set up on this site yet.":c==="rate_limited"?"Too many questions at once. Wait a minute and try again.":c==="session_expired"?"The AI is busy. Try again in a moment.":c==="refused"?"The AI can't answer that. Try describing it differently.":c==="invalid_json"?"The answer came back jumbled. Press the button again.":"The connection dropped. Check the internet and try again.";}
+function thinking(box){box.textContent="";box.append(el("p",{class:"thinking muted",text:"The AI is thinking"}));}
+function exampleFlag(box){box.prepend(el("span",{class:"example-flag",text:"Example answer. The live AI is not available on this device."}));}
+
+/* ---------- INFLATION ---------- */
+function infMaths(){
+  const o=Number($("#infOld").value),n=Number($("#infNew").value),m=Math.max(1,Number($("#infMonths").value)||12);
+  if(!(o>0&&n>0))return null;
+  const ch=(n-o)/o*100;const yearly=(Math.pow(n/o,12/m)-1)*100;const buys=1000*o/n;
+  return {o,n,m,ch,yearly,buys};
+}
+function drawInf(){
+  const r=infMaths();const s=$("#infStats"),b=$("#infBars");s.textContent="";b.textContent="";
+  if(!r){s.append(el("p",{class:"muted small",text:"Enter both prices to see the maths."}));return;}
+  s.append(el("div",{},el("b",{text:(r.ch>=0?"+":"")+r.ch.toFixed(1)+"%"}),el("span",{text:`price change in ${r.m} month${r.m>1?"s":""}`})),
+           el("div",{},el("b",{text:naira(r.n-r.o)}),el("span",{text:"extra you now pay"})),
+           el("div",{},el("b",{text:naira(r.buys)}),el("span",{text:"what ₦1,000 of the old price is worth now"})));
+  const max=Math.max(Math.abs(r.yearly),NATIONAL.food,NATIONAL.headline,1);
+  [["Your item (yearly)",r.yearly,""],["Food in Nigeria",NATIONAL.food,"nat"],["All prices (headline)",NATIONAL.headline,"nat"]].forEach(([l,v,c])=>{
+    b.append(el("div",{class:"bar"},el("span",{text:l}),el("div",{class:"track"},el("div",{class:"fill "+c,style:`width:${Math.max(2,Math.abs(v)/max*100)}%`})),el("b",{text:v.toFixed(1)+"%"})));});
+}
+["#infOld","#infNew","#infMonths"].forEach(s=>$(s).addEventListener("input",drawInf));drawInf();
+function renderInf(r,box,example){
+  box.textContent="";
+  box.append(el("p",{class:"big",text:String(r.headline||"")}),el("p",{text:String(r.explain||"")}));
+  if(Array.isArray(r.causes)&&r.causes.length){const ul=el("ul");r.causes.slice(0,4).forEach(c=>ul.append(el("li",{text:String(c)})));box.append(el("div",{class:"card"},el("h3",{text:"Why it happens"}),ul));}
+  if(r.compare)box.append(el("p",{},el("b",{text:"Compared with Nigeria: "}),String(r.compare)));
+  if(Array.isArray(r.tips)&&r.tips.length){const ul=el("ul");r.tips.slice(0,3).forEach(c=>ul.append(el("li",{text:String(c)})));box.append(el("div",{class:"card"},el("h3",{text:"Smart ways to cope"}),ul));}
+  if(example)exampleFlag(box);
+}
+const INF_EXAMPLE={headline:"Your rice costs ₦14,000 more than a year ago: about 20.6% up.",explain:"That is a bit faster than food prices across Nigeria (19.57%). When prices rise, each naira buys less, so ₦1,000 of last year's rice is worth about ₦829 of rice today.",causes:["Transport costs: fuel makes moving rice from farms and ports dearer.","Some rice or inputs are bought with dollars, so a weaker naira raises prices.","Bad roads, storage losses and flooding reduce supply."],compare:"Your item rose faster than all prices on average (15.39%).",tips:["Buy in bulk with neighbours and share.","Compare prices at two markets before buying."]};
+$("#infForm").onsubmit=async e=>{
+  e.preventDefault();const r=infMaths();const box=$("#infOut");
+  if(!r){box.textContent="Enter both prices first.";return;}
+  const item=scrub($("#infItem").value).text, q=scrub($("#infQ").value);
+  const prompt=`You are Inflation Explainer AI, built by Nigerian secondary school students to help families understand rising prices.
+${RULES_COMMON}
+FACTS YOU MAY USE (do not use other statistics): Nigeria headline inflation ${NATIONAL.headline}% year-on-year and food inflation ${NATIONAL.food}% year-on-year in ${NATIONAL.month} (${NATIONAL.source}).
+THE USER'S ITEM (calculated by our code, already correct): ${item}. Price before ₦${r.o.toLocaleString()}, now ₦${r.n.toLocaleString()}, ${r.m} months apart. Change ${r.ch.toFixed(1)}%. Yearly rate ${r.yearly.toFixed(1)}%. ₦1,000 of the old price is worth ₦${Math.round(r.buys)} now.
+${q.text.trim()?"USER QUESTION: "+q.text.trim():"No extra question."}
+Explain what is happening. Give likely causes in general terms (fuel and transport, exchange rate, supply, weather, demand) and say "likely" because you cannot know the exact cause for this one item.
+Reply with only JSON: {"headline":"one sentence with the change in naira and percent","explain":"max 70 words","causes":["3 short likely causes"],"compare":"one sentence comparing the item's yearly rate with the national food or headline rate","tips":["2 practical ways a family can cope"]}`;
+  renderHow("inflation",prompt,q.removed);
+  if(!sample){renderInf(INF_EXAMPLE,box,true);return;}
+  thinking(box);$("#infBtn").disabled=true;
+  try{renderInf(await sample.json(prompt,{modelTier:deep(e.target),cache:false}),box,false);}catch(err){box.textContent=errCopy(err);}
+  $("#infBtn").disabled=false;
+};
+
+/* ---------- CAREER ---------- */
+const CAR_EXAMPLE={careers:[{title:"Software developer",why:"You enjoy computers and helping people, and you like Maths.",subjects:["Maths","Computer Studies","Physics"],routes:["University: Computer Science or Software Engineering (JAMB + WAEC/NECO credits)","Polytechnic: ND then HND in Computer Science","Free online courses and a coding club, then build small apps"],startNow:"Build one small Scratch or web project this month and show it to someone."},{title:"Phone and computer repair technician",why:"You like fixing machines and tech.",subjects:["Basic Science","Computer Studies"],routes:["Learn under a master technician","Get a trade certificate (for example NABTEB or a National Skills Qualification)","Open a small repair stand"],startNow:"Watch how a repairer opens a phone, and learn the names of the parts."},{title:"Health records and data officer",why:"Numbers plus helping people.",subjects:["Maths","Biology","Computer Studies"],routes:["Polytechnic: ND in Health Information Management","University: Health Information or Statistics"],startNow:"Practise keeping a neat table of your class scores in a spreadsheet."}]};
+function renderCar(r,box,example){
+  box.textContent="";const list=Array.isArray(r&&r.careers)?r.careers.slice(0,3):[];
+  if(!list.length){box.append(el("p",{text:"No careers came back. Try picking more things you enjoy."}));return;}
+  list.forEach((c,i)=>{const card=el("div",{class:"card"},el("p",{class:"eyebrow",text:"Career "+(i+1)}),el("h3",{text:String(c.title||"")}),el("p",{text:String(c.why||"")}));
+    if(Array.isArray(c.subjects))card.append(el("div",{class:"row"},...c.subjects.slice(0,4).map(s=>el("span",{class:"pill",text:String(s)}))));
+    if(Array.isArray(c.routes)){const ul=el("ul");c.routes.slice(0,4).forEach(x=>ul.append(el("li",{text:String(x)})));card.append(el("p",{class:"small"},el("b",{text:"Routes in Nigeria"})),ul);}
+    if(c.startNow)card.append(el("p",{},el("b",{text:"Start this week: "}),String(c.startNow)));
+    box.append(card);});
+  if(example)exampleFlag(box);
+}
+$("#carForm").onsubmit=async e=>{
+  e.preventDefault();const box=$("#carOut");
+  const ints=picked("#carInterests"),subs=picked("#carSubjects");
+  if(!ints.length){box.textContent="Pick at least one thing you enjoy.";return;}
+  const extra=scrub($("#carDream").value);
+  const prompt=`You are Naija Career Compass AI, built by Nigerian secondary school students to help young people discover careers.
+${RULES_COMMON}
+STUDENT CHOICES: enjoys ${ints.join(", ")}. Likes subjects: ${subs.join(", ")||"not given"}. School level: ${$("#carLevel").value}. Prefers working ${$("#carPlace").value.toLowerCase()}, ${$("#carPeople").value.toLowerCase()}.
+${extra.text.trim()?"MORE ABOUT THEM: "+extra.text.trim():""}
+Suggest exactly 3 careers that fit. Make them varied: at least one university route and at least one skilled trade or hands-on route. Routes must be real Nigerian pathways (for example WAEC/NECO, JAMB/UTME, university, polytechnic ND/HND, colleges of education, technical colleges, apprenticeship with a master, NABTEB or National Skills Qualification trade certificates). Never say a career is not for them because of gender, background or money.
+Reply with only JSON: {"careers":[{"title":"","why":"one sentence linking to their choices","subjects":["2-4 school subjects to focus on"],"routes":["2-3 short Nigerian routes"],"startNow":"one small thing to try this week"}]}`;
+  renderHow("career",prompt,extra.removed);
+  if(!sample){renderCar(CAR_EXAMPLE,box,true);return;}
+  thinking(box);$("#carBtn").disabled=true;
+  try{renderCar(await sample.json(prompt,{modelTier:deep(e.target),cache:false}),box,false);}catch(err){box.textContent=errCopy(err);}
+  $("#carBtn").disabled=false;
+};
+
+/* ---------- VOICE ---------- */
+const V_EXAMPLE={title:"Flooded road blocks pupils from getting to school",sendTo:"Local Government Area (LGA) Works Department, with a copy to the school's Parent-Teacher Association",summary:"The road leading to the school floods whenever it rains, and the potholes are getting deeper.",impact:"Pupils walk through dirty water, some miss classes, and okada riders have fallen into the potholes.",request:"Please inspect the road, clear the drains and fill the potholes before the next heavy rains.",urgency:"high",nextStep:"Ask the PTA chairman or the school head to sign and submit it, and keep a copy with the date."};
+function renderV(r,box,example){
+  box.textContent="";const u=String(r.urgency||"medium").toLowerCase();
+  const text=`${r.title}\n\nTo: ${r.sendTo}\n\nThe problem: ${r.summary}\n\nWho it affects: ${r.impact}\n\nWhat we are asking for: ${r.request}\n\nUrgency: ${u}`;
+  box.append(el("div",{class:"row"},el("span",{class:"pill "+(["high","medium","low"].includes(u)?u:"medium"),text:"Urgency: "+u})),
+    el("p",{class:"big",text:String(r.title||"")}),
+    el("div",{class:"card"},el("p",{},el("b",{text:"Send to: "}),String(r.sendTo||"")),el("p",{},el("b",{text:"The problem: "}),String(r.summary||"")),el("p",{},el("b",{text:"Who it affects: "}),String(r.impact||"")),el("p",{},el("b",{text:"What we ask for: "}),String(r.request||""))));
+  if(r.nextStep)box.append(el("p",{},el("b",{text:"Next step: "}),String(r.nextStep)));
+  const pre=el("pre",{class:"prompt",text});const cb=el("button",{class:"btn ghost",type:"button",text:"Copy report"});const msg=el("span",{class:"small muted"});
+  cb.onclick=async()=>{try{await navigator.clipboard.writeText(text);msg.textContent="Copied.";}catch(_){const r2=document.createRange();r2.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r2);msg.textContent="Selected. Press copy on your keyboard.";}};
+  box.append(el("details",{},el("summary",{text:"Plain-text version"}),pre),el("div",{class:"copyrow"},cb,msg));
+  if(example)exampleFlag(box);
+}
+$("#vForm").onsubmit=async e=>{
+  e.preventDefault();const box=$("#vOut");const d=scrub($("#vText").value);
+  if(!d.text.trim()){box.textContent="Describe the problem first.";return;}
+  const prompt=`You are Community Voice AI, built by Nigerian secondary school students so residents can report community problems clearly and politely.
+${RULES_COMMON}
+REPORT DETAILS: Problem type: ${$("#vType").value}. Place: ${$("#vPlace").value}. Lasting: ${$("#vLong").value}. Affects: ${picked("#vWho").join(", ")||"not given"}.
+RESIDENT'S DESCRIPTION: """${d.text.slice(0,2000)}"""
+Write a short, respectful report. Rules: describe the problem, never blame or name any person; no insults; no exaggeration beyond what was described. Suggest the TYPE of office to send it to (for example the Local Government Area office or its works or environmental department, the ward councillor, the school's PTA, the electricity distribution company's customer care, the market association) and never invent a person's name. Urgency is "high" if safety, health or school attendance is at risk, "medium" if it disrupts daily life, otherwise "low".
+Reply with only JSON: {"title":"max 12 words","sendTo":"type of office","summary":"1-2 sentences","impact":"1-2 sentences","request":"1-2 sentences, a clear polite request","urgency":"high|medium|low","nextStep":"one practical tip for submitting it"}`;
+  renderHow("voice",prompt,d.removed);
+  if(!sample){renderV(V_EXAMPLE,box,true);return;}
+  thinking(box);$("#vBtn").disabled=true;
+  try{renderV(await sample.json(prompt,{modelTier:deep(e.target),cache:false}),box,false);}catch(err){box.textContent=errCopy(err);}
+  $("#vBtn").disabled=false;
+};
+
+/* ---------- empty states ---------- */
+$("#infOut").append(el("div",{class:"empty",text:"Press Explain it. The AI's explanation appears here."}));
+$("#carOut").append(el("div",{class:"empty",text:"Pick what you enjoy, then press Find my careers."}));
+$("#vOut").append(el("div",{class:"empty",text:"Press Write my report. A clear report appears here, ready to copy."}));
+
+/* ---------- boot ---------- */
+function setStatus(){$("#status").textContent=aiOK?"AI is live.":aiOK===false?"Live AI is not available on this device, so each tool shows a marked example answer.":"Starting the AI…";}
+(async()=>{
+  const c=window.claude;
+  if(c&&c.use){try{sample=await c.use("sample");}catch(_){sample=null;}}
+  aiOK=!!sample;setStatus();
+})();
+})();
+</script>
+
+<a href="/" id="bb-home" aria-label="Back to the home page" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;background:#0f3d5e;color:#fff;font:600 13px/1 system-ui,sans-serif;padding:9px 12px;border-radius:99px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:.88">&#8962; Home</a></body></html>

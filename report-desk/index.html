@@ -1,0 +1,1011 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ByteBusters Report Desk</title>
+<meta name="theme-color" content="#0B4F2E">
+<!-- ============================================================
+     PASTE YOUR GOOGLE SHEET WEB APP LINK BETWEEN THE QUOTES BELOW.
+     It looks like https://script.google.com/macros/s/..../exec
+     Leave it empty to try the desk in demo mode (nothing is saved).
+     ============================================================ -->
+<script src="config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Public+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: a working desk. Sticky tab bar, one view at a time, the report itself rendered as a sheet of paper. */
+:root {
+  --paper: #F4F7F1; --card: #FFFFFF; --ink: #14221A; --muted: #59695E; --line: #D9E2D5; --field: #FFFFFF;
+  --green: #0F6B3E; --green-ink: #0B4F2E; --green-soft: #E3F1E8; --yellow: #F3C324; --yellow-soft: #FFF3C8; --yellow-ink: #5A4500;
+  --met: #1F8A4C; --partly: #B97E00; --notyet: #C2412D; --gap: #7E5DB0; --sheet: #FFFFFF; --sheet-ink: #15231B;
+  --shadow: 0 1px 2px rgba(20, 50, 30, .06), 0 8px 24px rgba(20, 50, 30, .07);
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0E1611; --card: #16211A; --ink: #E8F0EA; --muted: #9DB1A3; --line: #2A3B30; --field: #101912;
+  --green: #4CC487; --green-ink: #8FE0B4; --green-soft: #183224; --yellow: #F3C324; --yellow-soft: #352D10; --yellow-ink: #FFE08A;
+  --met: #4CC487; --partly: #E8B53A; --notyet: #F17B64; --gap: #B59CE0; --sheet: #F7F9F5; --sheet-ink: #15231B;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .35); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #0E1611; --card: #16211A; --ink: #E8F0EA; --muted: #9DB1A3; --line: #2A3B30; --field: #101912;
+  --green: #4CC487; --green-ink: #8FE0B4; --green-soft: #183224; --yellow: #F3C324; --yellow-soft: #352D10; --yellow-ink: #FFE08A;
+  --met: #4CC487; --partly: #E8B53A; --notyet: #F17B64; --gap: #B59CE0; --sheet: #F7F9F5; --sheet-ink: #15231B;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .35); color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+img { max-width: 100%; }
+body:not(.admin) .admin-only { display: none !important; }
+body.admin .team-only { display: none !important; }
+.gate { position: fixed; inset: 0; z-index: 30; background: var(--paper); display: grid; place-items: center; padding: 16px; }
+.gate form { width: min(420px, 100%); text-align: center; display: grid; gap: 14px; justify-items: center; }
+.gate .mark { width: 60px; height: 60px; font-size: 22px; border-radius: 16px; }
+.gate input { font: 700 28px var(--mono); letter-spacing: .35em; text-align: center; max-width: 260px; }
+.hbtn { background: transparent; color: #fff; border: 1.5px solid rgba(255, 255, 255, .45); border-radius: 8px; padding: 4px 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.hbtn:hover { background: rgba(255, 255, 255, .12); }
+body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--green-ink); }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; line-height: 1.15; }
+a { color: var(--green); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- top bar ---------- */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--green-ink); color: #fff; }
+:root[data-theme="dark"] .top { background: #0A2416; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .top { background: #0A2416; } }
+.top-in { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px 0; display: flex; flex-direction: column; gap: 8px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.mark { width: 34px; height: 34px; flex: none; border-radius: 9px; background: var(--yellow); color: #0B4F2E; display: grid; place-items: center; font: 800 15px var(--display); }
+.brand b { font: 800 19px var(--display); letter-spacing: .01em; }
+.brand small { display: block; font-size: 12px; opacity: .78; }
+.brand .stat { margin-left: auto; font-size: 12px; opacity: .85; text-align: right; }
+.tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.tabs a { flex: none; color: #D7EDDF; text-decoration: none; font-weight: 700; font-size: 14px; padding: 9px 14px 11px; border-radius: 10px 10px 0 0; }
+.tabs a:hover { color: #fff; background: rgba(255, 255, 255, .08); }
+.tabs a.on { background: var(--paper); color: var(--ink); }
+
+/* ---------- page ---------- */
+main { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 22px 60px; }
+.view[hidden] { display: none !important; }
+.head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.head h1 { font-size: clamp(24px, 3.6vw, 34px); }
+.head p { margin: 4px 0 0; color: var(--muted); max-width: 62ch; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; box-shadow: var(--shadow); min-width: 0; }
+.grid { display: grid; gap: 16px; }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.label { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.banner { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; background: var(--yellow-soft); color: var(--yellow-ink);
+  border: 1px solid color-mix(in srgb, var(--yellow) 50%, transparent); border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; font-weight: 600; }
+.notice { padding: 40px 18px; text-align: center; color: var(--muted); }
+
+/* buttons, fields */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 10px; padding: 10px 16px; font-weight: 700;
+  cursor: pointer; background: var(--green); color: #fff; text-decoration: none; }
+:root[data-theme="dark"] .btn:not(.ghost):not(.warn) { color: #062012; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn:not(.ghost):not(.warn) { color: #062012; } }
+.btn:hover { filter: brightness(1.08); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--green); border: 1.5px solid var(--green); }
+.btn.gold { background: var(--yellow); color: #3D2F00 !important; }
+.btn.warn { background: transparent; color: var(--notyet); border: 1.5px solid var(--notyet); }
+.btn.sm { padding: 6px 11px; font-size: 13px; border-radius: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.field > span { font-weight: 700; font-size: 13.5px; }
+.field small { color: var(--muted); font-size: 12.5px; }
+input, select, textarea { width: 100%; border: 1.5px solid var(--line); background: var(--field); border-radius: 10px; padding: 9px 11px; min-width: 0; }
+input:focus, select:focus, textarea:focus { border-color: var(--green); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 20%, transparent); }
+textarea { resize: vertical; }
+.fgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.span2 { grid-column: span 2; } .span4 { grid-column: 1 / -1; }
+
+/* segmented choice + chips */
+.seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg label, .chips label { cursor: pointer; position: relative; }
+.seg input, .chips input { position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; left: 0; top: 0; }
+.seg span { display: inline-block; padding: 8px 14px; border-radius: 99px; border: 1.5px solid var(--line); font-weight: 700; font-size: 14px; background: var(--field); }
+.seg input:focus-visible + span, .chips input:focus-visible + span { outline: 3px solid var(--yellow); }
+.seg input[value="met"]:checked + span { background: var(--met); border-color: var(--met); color: #fff; }
+.seg input[value="partly"]:checked + span { background: var(--partly); border-color: var(--partly); color: #fff; }
+.seg input[value="notyet"]:checked + span { background: var(--notyet); border-color: var(--notyet); color: #fff; }
+.chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.chips span { display: inline-block; padding: 6px 12px; border-radius: 8px; border: 1.5px solid var(--line); font-size: 13.5px; font-weight: 600; background: var(--field); }
+.chips input:checked + span { background: var(--green-soft); border-color: var(--green); color: var(--green-ink); }
+.topic { border-left: 4px solid var(--green); background: var(--green-soft); border-radius: 0 10px 10px 0; padding: 10px 14px; font-size: 14px; }
+.topic.gap { border-color: var(--gap); }
+.topic b { display: block; }
+
+/* status pills */
+.pill { display: inline-block; font-size: 12px; font-weight: 800; border-radius: 99px; padding: 2px 9px; white-space: nowrap; }
+.pill.met { background: color-mix(in srgb, var(--met) 16%, transparent); color: var(--met); }
+.pill.partly { background: color-mix(in srgb, var(--partly) 18%, transparent); color: var(--partly); }
+.pill.notyet { background: color-mix(in srgb, var(--notyet) 15%, transparent); color: var(--notyet); }
+.pill.none { background: color-mix(in srgb, var(--muted) 14%, transparent); color: var(--muted); }
+.pill.gap { background: color-mix(in srgb, var(--gap) 16%, transparent); color: var(--gap); }
+.pill.ex { background: var(--yellow-soft); color: var(--yellow-ink); }
+
+/* overview */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.kpi b { display: block; font: 700 28px var(--mono); font-variant-numeric: tabular-nums; margin-top: 2px; }
+.kpi small { color: var(--muted); }
+.centre h3 { font-size: 18px; }
+.cls { padding: 12px 0; border-top: 1px dashed var(--line); }
+.cls:first-of-type { border-top: 0; }
+.cls-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; font-weight: 700; }
+.strip { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.cell { width: 34px; height: 26px; border-radius: 6px; display: grid; place-items: center; font: 700 10.5px var(--mono); color: #fff; }
+.cell.met { background: var(--met); } .cell.partly { background: var(--partly); } .cell.notyet { background: var(--notyet); }
+.cell.none { background: transparent; border: 1.5px dashed var(--line); color: var(--muted); } .cell.gap { background: transparent; border: 1.5px dashed var(--gap); color: var(--gap); }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12.5px; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.list li { display: grid; gap: 2px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.list li:last-child { border-bottom: 0; padding-bottom: 0; }
+.list small { color: var(--muted); }
+
+/* sessions table */
+.tbl { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 11.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+td .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* report sheet */
+.rep-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; align-items: start; }
+.controls { position: sticky; top: 110px; display: grid; gap: 14px; }
+.sheet { background: var(--sheet); color: var(--sheet-ink); border-radius: 6px; box-shadow: var(--shadow); padding: clamp(18px, 4vw, 44px); min-width: 0;
+  border-top: 8px solid #0F6B3E; }
+.sheet .lh { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: start; padding-bottom: 14px; border-bottom: 2px solid #0F6B3E; }
+.sheet .lh h2 { font-size: clamp(20px, 3vw, 26px); color: #0B4F2E; }
+.sheet .ref { font: 600 12px var(--mono); color: #4E5E53; text-align: right; }
+.sheet h3 { font-size: 15px; color: #0B4F2E; margin: 22px 0 8px; text-transform: uppercase; letter-spacing: .06em; }
+.sheet p, .sheet li { color: #1E2C23; }
+.sheet table { font-size: 13px; color: #1E2C23; }
+.sheet th { color: #4E5E53; border-bottom: 2px solid #CFDACB; }
+.sheet td { border-bottom: 1px solid #E1E8DE; }
+.sheet .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.sheet .facts div { background: #EEF5EF; border-radius: 8px; padding: 10px; }
+.sheet .facts b { display: block; font: 700 22px var(--mono); color: #0B4F2E; }
+.sheet .facts small { color: #4E5E53; }
+.sheet textarea { background: #FFFDF2; color: #1E2C23; border: 1.5px dashed #D6C58A; font-size: 14.5px; line-height: 1.6; min-height: 130px; }
+.sheet .sign { margin-top: 26px; padding-top: 12px; border-top: 1px solid #CFDACB; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; font-size: 13.5px; }
+.sheet .pill.met { color: #1F7A44; } .sheet .pill.partly { color: #8C5F00; } .sheet .pill.notyet { color: #B13A27; } .sheet .pill.none, .sheet .pill.gap { color: #5B4A86; }
+.sheet .empty { color: #6A776E; font-style: italic; }
+
+/* curriculum */
+.term-h { display: flex; align-items: center; gap: 10px; margin: 26px 0 10px; }
+.term-h h2 { font-size: 21px; }
+.term-h .bar { flex: 1; height: 2px; background: var(--line); }
+.cur td:first-child { font-weight: 700; white-space: nowrap; }
+.cur tr.gap td { background: color-mix(in srgb, var(--gap) 7%, transparent); }
+.weeks { margin: 0; padding-left: 16px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 160%); background: var(--ink); color: var(--paper);
+  padding: 10px 16px; border-radius: 10px; font-weight: 700; transition: transform .25s; z-index: 20; max-width: calc(100vw - 32px); }
+.toast.show { transform: translate(-50%, 0); }
+.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: sp .8s linear infinite; }
+@keyframes sp { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } .toast { transition: none; } }
+
+@media (max-width: 980px) {
+  .rep-grid { grid-template-columns: 1fr; } .controls { position: static; }
+  .g3 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 720px) {
+  .g2, .g3 { grid-template-columns: 1fr; }
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .fgrid { grid-template-columns: 1fr 1fr; } .span2 { grid-column: 1 / -1; }
+  .sheet .facts { grid-template-columns: 1fr 1fr; }
+  #topStat { display: none; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">BB</span>
+      <div><b>ByteBusters Report Desk</b><small>Log a session in 2 minutes. Reports write themselves.</small></div>
+      <div class="stat"><span id="topStat">Loading…</span><div class="row" style="justify-content:flex-end;gap:6px;margin-top:4px"><button class="hbtn" id="refreshBtn" type="button">Refresh</button><button class="hbtn" id="lockBtn" type="button">Lock</button></div></div>
+    </div>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#overview" data-v="overview">Overview</a>
+      <a href="#log" data-v="log">Log a session</a>
+      <a href="#reports" data-v="reports">Reports</a>
+      <a href="#curriculum" data-v="curriculum">Curriculum</a>
+      <a href="#setup" data-v="setup">Centres &amp; setup</a>
+    </nav>
+  </div>
+</header>
+
+<div class="gate" id="gate" hidden>
+  <form id="gateForm" class="card" novalidate>
+    <span class="mark" aria-hidden="true">BB</span>
+    <h1 style="font-size:24px">ByteBusters Report Desk</h1>
+    <p class="muted" style="margin:0">Type the team PIN your Centre Lead gave you.</p>
+    <input id="gatePin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" aria-label="Team PIN">
+    <p id="gateErr" style="color:var(--notyet);font-weight:700;min-height:1.2em;margin:0"></p>
+    <button class="btn" type="submit" style="width:100%">Open the desk</button>
+  </form>
+</div>
+<main>
+  <div id="exBanner" class="banner" hidden>
+    <span>The <b>Example</b> sessions show what your reports will look like. Delete them before your first real report.</span>
+    <button class="btn sm gold" id="exDelete" type="button">Delete the examples</button>
+  </div>
+  <div id="offline" class="banner" hidden></div>
+
+  <!-- ================= OVERVIEW ================= -->
+  <section class="view" id="v-overview">
+    <div class="head">
+      <div><h1 id="ovTitle">This term at a glance</h1><p>Every logged session, matched to the curriculum. Green means the objective was met.</p></div>
+      <div class="row">
+        <label class="field" style="min-width:150px"><span class="label">Term</span>
+          <select id="ovTerm"><option value="1">First Term</option><option value="2">Second Term</option><option value="3">Third Term</option></select></label>
+        <a class="btn" href="#log">+ Log a session</a>
+      </div>
+    </div>
+    <div class="kpis" id="ovKpis"></div>
+    <div class="grid g2">
+      <div class="grid" id="ovCentres"></div>
+      <div class="grid" style="align-content:start">
+        <div class="card"><h3 style="font-size:17px;margin-bottom:10px">Write a report now</h3>
+          <div class="row"><button class="btn" type="button" data-quick="thisweek">This week</button><button class="btn ghost" type="button" data-quick="lastweek">Last week</button>
+          <button class="btn ghost" type="button" data-quick="thismonth">This month</button><button class="btn ghost" type="button" data-quick="term">This term</button></div></div>
+        <div class="card"><h3 style="font-size:17px;margin-bottom:10px">Needs attention</h3><ul class="list" id="ovAttention"></ul></div>
+        <div class="card"><h3 style="font-size:17px;margin-bottom:10px">Latest wins</h3><ul class="list" id="ovWins"></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= LOG A SESSION ================= -->
+  <section class="view" id="v-log" hidden>
+    <div class="head"><div><h1 id="logTitle">Log a session</h1><p>Fill this in at the end of each class. The topic and objective come straight from the curriculum, so you never type them twice.</p></div></div>
+    <form class="card" id="logForm" novalidate>
+      <input type="hidden" id="fId">
+      <div class="fgrid">
+        <label class="field"><span>Date</span><input type="date" id="fDate" required></label>
+        <label class="field span2"><span>Centre and class</span><select id="fClass" required></select></label>
+        <label class="field"><span>Term</span><select id="fTerm"><option value="1">First Term</option><option value="2">Second Term</option><option value="3">Third Term</option></select></label>
+        <label class="field span2"><span>Curriculum topic</span><select id="fCur"></select><small id="fCurHint"></small></label>
+        <label class="field"><span>Week of term</span><input type="number" id="fWeek" min="1" max="14" inputmode="numeric"><small id="fWeekHint"></small></label>
+        <label class="field"><span>Topic (if not in the list)</span><input id="fOther" maxlength="120" placeholder="e.g. Showcase rehearsal"></label>
+        <div class="span4" id="fTopicCard"></div>
+        <div class="field span4"><span>Was the objective reached?</span>
+          <div class="seg" role="radiogroup" aria-label="Objective reached">
+            <label><input type="radio" name="fStatus" value="met"><span>Met</span></label>
+            <label><input type="radio" name="fStatus" value="partly"><span>Partly</span></label>
+            <label><input type="radio" name="fStatus" value="notyet"><span>Not yet</span></label>
+          </div></div>
+        <label class="field"><span>Learners present</span><input type="number" id="fPresent" min="0" max="200" inputmode="numeric" required></label>
+        <label class="field"><span>Learners enrolled</span><input type="number" id="fEnrolled" min="0" max="200" inputmode="numeric"></label>
+        <label class="field"><span>Student presentations</span><input type="number" id="fPres" min="0" max="50" inputmode="numeric" value="0"><small>How many students presented or explained their work</small></label>
+        <label class="field"><span>Logged by</span><input id="fBy" maxlength="60" placeholder="Your name" autocomplete="name"></label>
+        <div class="field span4"><span>What happened</span>
+          <div class="chips" id="fActs"></div></div>
+        <label class="field span2"><span>Win</span><input id="fWin" maxlength="200" placeholder="Best thing that happened"></label>
+        <label class="field span2"><span>Challenge</span><input id="fChallenge" maxlength="200" placeholder="What slowed the class down"></label>
+        <label class="field span2"><span>Support needed</span><input id="fSupport" maxlength="200" placeholder="e.g. 3 more laptops, stable power"></label>
+        <label class="field span2"><span>Next session</span><input id="fNext" maxlength="200" placeholder="What you will do next time"></label>
+        <label class="field span4"><span>Evidence link</span><input type="url" id="fEvidence" placeholder="Photo folder, GitHub or live site (optional)"></label>
+      </div>
+      <p class="muted" style="font-size:13px;margin:14px 0 0">Use first names only, or no names. Reports are about the class, not one child.</p>
+      <p id="fErr" style="color:var(--notyet);font-weight:700;min-height:1.3em;margin:8px 0"></p>
+      <div class="row"><button class="btn" type="submit" id="fSave">Save session</button><button class="btn ghost" type="button" id="fCancel" hidden>Cancel editing</button></div>
+    </form>
+    <div class="card" style="margin-top:18px">
+      <div class="row" style="justify-content:space-between;margin-bottom:8px"><h3 style="font-size:18px">Logged sessions</h3><small class="muted" id="logCount"></small></div>
+      <div class="tbl"><table><thead><tr><th>Date</th><th>Centre · class</th><th>Topic</th><th>Objective</th><th>Present</th><th></th></tr></thead><tbody id="logRows"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ================= REPORTS ================= -->
+  <section class="view" id="v-reports" hidden>
+    <div class="head"><div><h1>Reports</h1><p>Pick a period. The report is built from your logged sessions and the curriculum. Edit the summary, then email it, copy it or download it as a Word file.</p></div></div>
+    <div class="rep-grid">
+      <div class="controls">
+        <div class="card grid" style="gap:12px">
+          <label class="field"><span>Period</span>
+            <select id="rPeriod"><option value="thisweek">This week</option><option value="lastweek">Last week</option><option value="thismonth">This month</option><option value="lastmonth">Last month</option><option value="term">Whole term</option><option value="custom">Choose dates</option></select></label>
+          <div class="grid g2" id="rCustom" hidden style="gap:10px">
+            <label class="field"><span>From</span><input type="date" id="rFrom"></label>
+            <label class="field"><span>To</span><input type="date" id="rTo"></label>
+          </div>
+          <label class="field" id="rTermWrap" hidden><span>Term</span><select id="rTerm"><option value="1">First Term</option><option value="2">Second Term</option><option value="3">Third Term</option></select></label>
+          <label class="field"><span>Centre</span><select id="rCentre"></select></label>
+          <label class="field" id="rExWrap"><span>Include example sessions</span><select id="rEx"><option value="yes">Yes</option><option value="no">No</option></select></label>
+        </div>
+        <div class="card grid" style="gap:10px">
+          <button class="btn gold" type="button" id="rEmail">Email this report</button>
+          <small class="muted" id="rEmailHint">Sends this report, with your summary, to the Centre Lead's Gmail.</small>
+          <button class="btn" type="button" id="rDocx">Download Word (.docx)</button>
+          <button class="btn ghost" type="button" id="rCopy">Copy as text</button>
+          <button class="btn ghost" type="button" id="rCsv">Download sessions (.csv)</button>
+          <textarea id="rCopyBox" rows="4" hidden aria-label="Report text to copy"></textarea>
+        </div>
+      </div>
+      <article class="sheet" id="sheet" aria-live="polite"></article>
+    </div>
+  </section>
+
+  <!-- ================= CURRICULUM ================= -->
+  <section class="view" id="v-curriculum" hidden>
+    <div class="head"><div><h1>Curriculum</h1><p>The 4-year ByteBusters curriculum, year by year and term by term. Every session you log points to one of these rows. Purple rows are gaps the curriculum does not list.</p></div>
+      <div class="row"><label class="field" style="min-width:140px"><span class="label">Show</span><select id="cYearFilter"><option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option><option value="4">Year 4</option><option value="all">All 4 years</option></select></label>
+      <button class="btn admin-only" type="button" id="cAddBtn">+ Add a row</button><button class="btn ghost admin-only" type="button" id="cPasteBtn">Paste from a table</button></div></div>
+    <form class="card" id="cForm" hidden novalidate>
+      <input type="hidden" id="cId">
+      <div class="fgrid">
+        <label class="field"><span>Curriculum year</span><select id="cYear"><option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option><option value="4">Year 4</option></select></label>
+        <label class="field"><span>Track</span><input id="cTrack" list="trackList" placeholder="e.g. Python" required></label>
+        <label class="field"><span>Level</span><input id="cLevel" list="levelList" placeholder="Beginner"></label>
+        <label class="field"><span>Term</span><select id="cTerm"><option value="1">First Term</option><option value="2">Second Term</option><option value="3">Third Term</option></select></label>
+        <label class="field"><span>Weeks</span><input id="cWeeks" placeholder="1-3" required></label>
+        <label class="field span2"><span>Course title</span><input id="cTitle" required></label>
+        <label class="field span2"><span>Course objective</span><input id="cObj"></label>
+        <label class="field span2"><span>Course content</span><textarea id="cContent" rows="3" placeholder="One line per week, e.g. Week 1-2: Introduction to..."></textarea></label>
+        <label class="field span2"><span>Project idea</span><textarea id="cProject" rows="3"></textarea></label>
+      </div>
+      <div class="row" style="margin-top:14px"><button class="btn" type="submit">Save row</button><button class="btn ghost" type="button" id="cCancel">Cancel</button></div>
+    </form>
+    <div class="card" id="cPaste" hidden>
+      <p style="margin-top:0">Copy rows from Excel, Google Sheets or a Word table and paste them here. Use 9 columns in this order:<br>
+        <span class="num" style="font-size:12.5px">Year (1-4) · Track · Level · Term (1, 2 or 3) · Weeks · Course title · Course content · Objective · Project idea</span></p>
+      <textarea id="cPasteBox" rows="6" placeholder="1&#9;Scratch&#9;Beginner&#9;1&#9;1-3&#9;Introduction to Scratch&#9;Week 1-2: ...&#9;Grasp ...&#9;Create ..."></textarea>
+      <p id="cPasteMsg" class="muted"></p>
+      <div class="row"><button class="btn" type="button" id="cPasteGo">Add these rows</button><button class="btn ghost" type="button" id="cPasteCancel">Cancel</button></div>
+    </div>
+    <div id="cList"></div>
+    <datalist id="trackList"></datalist>
+    <datalist id="levelList"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></datalist>
+  </section>
+
+  <!-- ================= SETUP ================= -->
+  <section class="view" id="v-setup" hidden>
+    <div class="head"><div><h1>Centres &amp; setup</h1><p>Your details go on every report. Term start dates let the desk work out the week number for you.</p></div></div>
+    <form class="card team-only" id="adminForm" style="margin-bottom:16px" novalidate>
+      <h3 style="font-size:18px;margin-bottom:6px">Only for the Centre Lead</h3>
+      <p class="muted" style="margin:0 0 10px">Type the admin PIN to change classes, the curriculum and report details.</p>
+      <div class="row"><input id="adminPin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" style="max-width:200px" aria-label="Admin PIN"><button class="btn" type="submit">Unlock editing</button><small id="adminErr" style="color:var(--notyet);font-weight:700"></small></div>
+    </form>
+    <div class="card admin-only" id="sheetInfo" style="margin-bottom:16px"></div>
+    <div class="grid g2 admin-only">
+      <form class="card grid" id="sForm" style="gap:12px" novalidate>
+        <h3 style="font-size:18px">Report details</h3>
+        <div class="grid g2" style="gap:12px">
+          <label class="field"><span>Your name</span><input id="sName" maxlength="80"></label>
+          <label class="field"><span>Your role</span><input id="sRole" maxlength="80"></label>
+          <label class="field"><span>Academic session</span><input id="sYear" maxlength="20" placeholder="2026/2027"></label>
+          <label class="field"><span>Current term</span><select id="sTerm"><option value="1">First Term</option><option value="2">Second Term</option><option value="3">Third Term</option></select></label>
+          <label class="field" style="grid-column:1/-1"><span>Report goes to (printed on the report)</span><input id="sTo" maxlength="120"></label>
+          <label class="field" style="grid-column:1/-1"><span>Gmail that receives the reports</span><input id="sEmail" type="text" maxlength="300" placeholder="you@gmail.com"><small>Separate several addresses with commas.</small></label>
+          <label class="field" style="grid-column:1/-1"><span>Email me every logged session</span><select id="sEach"><option value="yes">Yes, and the weekly report</option><option value="no">No, only the weekly report</option></select></label>
+          <label class="field"><span>First Term starts</span><input type="date" id="sT1"></label>
+          <label class="field"><span>Second Term starts</span><input type="date" id="sT2"></label>
+          <label class="field"><span>Third Term starts</span><input type="date" id="sT3"></label>
+        </div>
+        <div><button class="btn" type="submit">Save details</button></div>
+      </form>
+      <div class="card grid" style="gap:12px;align-content:start">
+        <h3 style="font-size:18px">Centres and classes</h3>
+        <div id="sClasses"></div>
+        <form class="grid" id="clsForm" style="gap:10px;border-top:1px solid var(--line);padding-top:12px" novalidate>
+          <input type="hidden" id="clsId">
+          <div class="grid g2" style="gap:10px">
+            <label class="field"><span>Centre</span><input id="clsCentre" list="centreList" placeholder="School name" required></label>
+            <label class="field"><span>Class</span><input id="clsName" placeholder="e.g. Web Development · Year 2" required></label>
+            <label class="field"><span>Curriculum year</span><select id="clsYear"><option value="">Not linked yet</option><option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option><option value="4">Year 4</option></select></label>
+            <label class="field"><span>Learners enrolled</span><input type="number" id="clsEnrolled" min="0" max="200" inputmode="numeric"></label>
+          </div>
+          <div class="row"><button class="btn" type="submit" id="clsSave">Add class</button><button class="btn ghost" type="button" id="clsCancel" hidden>Cancel</button></div>
+          <datalist id="centreList"></datalist>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ===================== state ===================== */
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const S = { db: null, pin: "", adminPin: "", admin: false, sheetUrl: "", cur: [], centres: [], classes: [], sessions: [], set: {}, ready: { cur: 0, centres: 0, classes: 0, sessions: 0, set: 0 } };
+const TERMS = { 1: "First Term", 2: "Second Term", 3: "Third Term" };
+const STATUS = { met: "Met", partly: "Partly met", notyet: "Not yet met" };
+const ACTS = ["Taught a new topic", "Hands-on practice", "Built project work", "Student presentations", "Revision", "Quiz or assessment", "Deployed or published", "Showcase rehearsal"];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const parse = s => { const [y, m, d] = String(s).split("-").map(Number); return new Date(y, m - 1, d); };
+const fmt = s => s ? parse(s).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
+const fmtShort = s => s ? parse(s).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "";
+const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), 2600); }
+
+const centreOf = id => S.centres.find(c => c.id === id);
+const classOf = id => S.classes.find(c => c.id === id);
+const curOf = id => S.cur.find(c => c.id === id);
+const classLabel = k => { if (!k) return "Unknown class"; const c = centreOf(k.centreId); return (c ? c.name + " · " : "") + k.name; };
+const weekFrom = w => parseInt(String(w).split("-")[0], 10) || 0;
+const sortCur = (a, b) => ((a.cyear || 0) - (b.cyear || 0)) || (a.term - b.term) || String(a.track).localeCompare(b.track) || (weekFrom(a.weeks) - weekFrom(b.weeks));
+const topicOf = s => { const c = curOf(s.curriculumId); return c ? `${c.track}: ${c.title} (Weeks ${c.weeks})` : (s.topic || "Other work"); };
+const yearNow = () => S.set.year || "";
+
+/* ===================== data: the Google Sheet ===================== */
+const API = String(window.RD_API || "").trim();
+const DEMO = !API;
+const MSG = { wrong_pin: "That PIN is not correct.", admin_only: "Only the Centre Lead can do this. Unlock editing in Centres & setup.",
+  class_in_use: "This class has logged sessions, so it stays. Edit it instead.", row_in_use: "Sessions use this row. Edit it instead of deleting it.",
+  unknown_class: "That class no longer exists. Refresh the desk.", no_email: "Add a report email in Centres & setup first.",
+  missing_fields: "Some required boxes are empty.", bad_date: "Choose a valid date.", bad_status: "Choose Met, Partly or Not yet." };
+const store = { get(k) { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }, del(k) { try { localStorage.removeItem(k); } catch (e) {} } };
+const slug = t => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "centre";
+function fail(e) { console.error(e); if (!e || e.code !== "wrong_pin") toast(e && e.message ? e.message : "Something went wrong. Try again."); }
+
+async function api(action, data = {}) {
+  if (DEMO) return demoApi(action, data);
+  let res, j;
+  try { res = await fetch(API, { method: "POST", body: JSON.stringify(Object.assign({ action, pin: S.pin, adminPin: S.adminPin || "" }, data)) }); }
+  catch (e) { throw new Error("No internet, or the Google Sheet link in the page is wrong."); }
+  try { j = await res.json(); } catch (e) { throw new Error("The Google Sheet did not answer properly. Check the web app link and its access (Anyone)."); }
+  if (!j.ok) {
+    const err = new Error(MSG[j.error] || ("The Google Sheet said: " + j.error)); err.code = j.error;
+    if (j.error === "wrong_pin") lock(MSG.wrong_pin);
+    throw err;
+  }
+  return j;
+}
+
+/* Demo mode: works with no Google Sheet, keeps everything in this tab only */
+const DEMO_DATA = {"curriculum": [{"id": "y1t1-1", "cyear": 1, "term": 1, "track": "Scratch", "level": "Beginner", "weeks": "1-3", "title": "Introduction to Scratch", "content": "Week 1-2: Understanding the Scratch interface. Grasping basic blocks and stage elements.\nWeek 3: Basic animations and simple storytelling.", "objective": "Grasp Scratch basics and block programming.", "project": "Create a simple animation/story using Scratch.", "missing": false}, {"id": "y1t1-2", "cyear": 1, "term": 1, "track": "Scratch", "level": "Beginner", "weeks": "4-6", "title": "Basic Game Development", "content": "Week 4: Introduction to sprites and movements.\nWeek 5-6: Implementing basic game mechanics, like scoring and collisions.", "objective": "Utilize loops, conditionals, and variables.", "project": "Develop a basic interactive game.", "missing": false}, {"id": "y1t1-3", "cyear": 1, "term": 1, "track": "Scratch", "level": "Beginner", "weeks": "7-10", "title": "Game Development Concepts", "content": "Week 7-8: Exploring game design elements (levels, characters).\nWeek 9-10: Applying user interactions and refining game mechanics.", "objective": "Understand game development concepts.", "project": "Design and code a simple game project.", "missing": false}, {"id": "y1t2-1", "cyear": 1, "term": 2, "track": "HTML & CSS", "level": "Beginner", "weeks": "1-3", "title": "Introduction to HTML/CSS", "content": "Week 1-2: Understanding HTML structure and basic tags.\nWeek 3: Basic CSS styling and formatting.", "objective": "Grasp fundamental HTML/CSS concepts.", "project": "Build a simple webpage using HTML and CSS.", "missing": false}, {"id": "y1t2-2", "cyear": 1, "term": 2, "track": "HTML & CSS", "level": "Beginner", "weeks": "4-6", "title": "Basic Styling Techniques", "content": "Week 4: Advanced CSS: Box model and positioning.\nWeek 5-6: Responsive design basics with media queries.", "objective": "Implement advanced CSS styling techniques.", "project": "", "missing": false}, {"id": "y1t2-3", "cyear": 1, "term": 2, "track": "HTML & CSS", "level": "Beginner", "weeks": "7-10", "title": "Building Interactive Pages", "content": "Week 7-8: HTML forms and input handling.\nWeek 9-10: Introduction to basic JavaScript for interactivity.", "objective": "Understand interactive web elements.", "project": "Develop a form with basic validation using JS.", "missing": false}, {"id": "y1t3-1", "cyear": 1, "term": 3, "track": "JavaScript", "level": "Beginner", "weeks": "1-3", "title": "Introduction to JavaScript", "content": "Week 1-2: Basic syntax, variables, and data types.\nWeek 3: Conditional statements and loops.", "objective": "Understand fundamental JavaScript concepts.", "project": "Build simple programs using basic JS concepts.", "missing": false}, {"id": "y1t3-2", "cyear": 1, "term": 3, "track": "JavaScript", "level": "Beginner", "weeks": "4-6", "title": "Implementing Interactivity", "content": "Week 4: Functions and scope.\nWeek 5-6: DOM manipulation and basic event handling.", "objective": "Apply JS to manipulate web elements.", "project": "Create interactive elements on a webpage.", "missing": false}, {"id": "y1t3-3", "cyear": 1, "term": 3, "track": "PHP", "level": "Beginner", "weeks": "7-10", "title": "Introduction to PHP", "content": "Week 7-8: Basic PHP syntax and variables.\nWeek 9-10: Control structures and functions in PHP.", "objective": "Understand fundamental PHP concepts.", "project": "Create simple programs using basic PHP.", "missing": false}, {"id": "y2t1-1", "cyear": 2, "term": 1, "track": "HTML & CSS", "level": "Intermediate", "weeks": "1-3", "title": "Advanced CSS Layouts", "content": "Week 1-2: CSS Grid and Flexbox layouts.\nWeek 3: Mastering responsive design strategies.", "objective": "Implement complex layouts using CSS.", "project": "Design a portfolio with advanced CSS layouts.", "missing": false}, {"id": "y2t1-2", "cyear": 2, "term": 1, "track": "HTML & CSS", "level": "Intermediate", "weeks": "4-6", "title": "CSS Animations and Effects", "content": "Week 4: CSS animations and transitions.\nWeek 5-6: Implementing CSS libraries for animations.", "objective": "Master CSS animation techniques.", "project": "Create interactive elements using CSS animations.", "missing": false}, {"id": "y2t1-3", "cyear": 2, "term": 1, "track": "HTML & CSS", "level": "Intermediate", "weeks": "7-10", "title": "Advanced HTML/CSS Projects", "content": "Week 7-8: Implementing CSS preprocessors (e.g., SASS).\nWeek 9-10: Building complex web layouts.", "objective": "Apply advanced HTML/CSS techniques.", "project": "Develop a feature-rich website with SASS.", "missing": false}, {"id": "y2t2-1", "cyear": 2, "term": 2, "track": "JavaScript", "level": "Intermediate", "weeks": "1-2", "title": "Developing Simple Projects", "content": "Week 1: Introduction to asynchronous JavaScript.\nWeek 2: Error handling and debugging.", "objective": "Learn asynchronous programming in JavaScript.", "project": "Develop a simple interactive web application.", "missing": false}, {"id": "y2t2-2", "cyear": 2, "term": 2, "track": "JavaScript", "level": "Intermediate", "weeks": "3-4", "title": "Advanced DOM Manipulation", "content": "Week 3: Advanced DOM manipulation techniques.\nWeek 4: Advanced event handling and delegation.", "objective": "Master complex DOM manipulation in JS.", "project": "Create complex web interactions using JS.", "missing": false}, {"id": "y2t2-3", "cyear": 2, "term": 2, "track": "JavaScript", "level": "Intermediate", "weeks": "5-6", "title": "Asynchronous JavaScript", "content": "Week 5: Working with promises.\nWeek 6: Introduction to AJAX and API integration.", "objective": "Understand asynchronous programming in depth.", "project": "Develop a weather app using AJAX and APIs.", "missing": false}, {"id": "y2t2-4", "cyear": 2, "term": 2, "track": "JavaScript", "level": "Intermediate", "weeks": "7-10", "title": "JavaScript Frameworks", "content": "Week 7-8: Introduction to popular JS frameworks (e.g., React, Vue).\nWeek 9-10: Basic React/Vue projects.", "objective": "Gain familiarity with popular JS frameworks.", "project": "Create a simple web app using a JS framework.", "missing": false}, {"id": "y2t3-1", "cyear": 2, "term": 3, "track": "PHP", "level": "Beginner", "weeks": "1-3", "title": "Handling Forms and Sessions", "content": "Week 1: Working with forms and handling user input.\nWeek 2-3: Session management and cookies.", "objective": "Handle user input and manage sessions.", "project": "Develop a basic web application with forms.", "missing": false}, {"id": "y2t3-2", "cyear": 2, "term": 3, "track": "PHP", "level": "Beginner", "weeks": "4-7", "title": "Database Integration", "content": "Week 4-5: Introduction to databases and SQL queries.\nWeek 6-7: Interacting with databases using PHP.", "objective": "Understand database operations in PHP.", "project": "Create a simple CRUD application with PHP/MySQL.", "missing": false}, {"id": "y2t3-3", "cyear": 2, "term": 3, "track": "Python", "level": "Beginner", "weeks": "8-10", "title": "Introduction to Python", "content": "Week 8-9: Basic syntax, variables, and data types.\nWeek 10: Conditional statements and loops.", "objective": "Understand fundamental Python concepts.", "project": "Create simple programs using basic Python.", "missing": false}, {"id": "y3t1-1", "cyear": 3, "term": 1, "track": "PHP", "level": "Intermediate", "weeks": "1-3", "title": "PHP Frameworks", "content": "Week 1-2: Introduction to frameworks like Laravel or CodeIgniter.\nWeek 3: Building applications with frameworks.", "objective": "Gain familiarity with PHP frameworks.", "project": "Develop a web app using a PHP framework.", "missing": false}, {"id": "y3t1-2", "cyear": 3, "term": 1, "track": "PHP", "level": "Intermediate", "weeks": "4-6", "title": "Advanced Web Development", "content": "Week 4: Working with APIs and web services in PHP.\nWeek 5-6: Creating RESTful APIs with PHP.", "objective": "Implement APIs and build RESTful services.", "project": "Develop a web service or integrate with an API.", "missing": false}, {"id": "y3t1-3", "cyear": 3, "term": 1, "track": "PHP", "level": "Intermediate", "weeks": "7-10", "title": "Advanced PHP Projects", "content": "Week 7-8: Scalable application architecture.\nWeek 9-10: Integrating third-party services and payment gateways.", "objective": "Create scalable and robust PHP applications.", "project": "Develop an e-commerce platform using PHP.", "missing": false}, {"id": "y3t2-1", "cyear": 3, "term": 2, "track": "Python", "level": "Beginner", "weeks": "1-3", "title": "Weeks 1-3 are not listed in the curriculum", "content": "", "objective": "", "project": "", "missing": true}, {"id": "y3t2-2", "cyear": 3, "term": 2, "track": "Python", "level": "Beginner", "weeks": "4-6", "title": "Functions and Data Structures", "content": "Week 4: Functions, scope, and arguments.\nWeek 5-6: Lists, tuples, dictionaries.", "objective": "Apply functions and manage data structures.", "project": "Develop simple applications using data structures.", "missing": false}, {"id": "y3t2-3", "cyear": 3, "term": 2, "track": "Python", "level": "Beginner", "weeks": "7-10", "title": "Working with Files", "content": "Week 7-8: Reading and writing files.\nWeek 9-10: Exception handling and debugging.", "objective": "Manipulate files and handle exceptions.", "project": "Create a text-based data processing script.", "missing": false}, {"id": "y3t3-1", "cyear": 3, "term": 3, "track": "Python", "level": "Intermediate", "weeks": "1-3", "title": "Advanced Python Concepts", "content": "Week 1-2: Object-oriented programming in Python.\nWeek 3: Working with modules and packages.", "objective": "Understand advanced Python programming.", "project": "Develop applications using OOP concepts.", "missing": false}, {"id": "y3t3-2", "cyear": 3, "term": 3, "track": "Python", "level": "Intermediate", "weeks": "4-6", "title": "Python for Data Analysis", "content": "Week 4: Introduction to Pandas for data manipulation.\nWeek 5-6: Data visualization with Matplotlib.", "objective": "Analyze and visualize data using Python.", "project": "Create data analysis projects with Pandas.", "missing": false}, {"id": "y3t3-3", "cyear": 3, "term": 3, "track": "Python", "level": "Intermediate", "weeks": "7-10", "title": "Web Development with Flask", "content": "Week 7-8: Introduction to Flask and web frameworks.\nWeek 9-10: Building web applications with Flask.", "objective": "Understand web development using Python.", "project": "Develop a basic web application with Flask.", "missing": false}, {"id": "y4t1-1", "cyear": 4, "term": 1, "track": "Python", "level": "Advanced", "weeks": "1-3", "title": "Advanced Python Libraries", "content": "Week 1-2: Exploring advanced libraries like NumPy, SciPy.\nWeek 3: Machine learning basics with scikit-learn.", "objective": "Gain proficiency in advanced Python libraries.", "project": "Create machine learning models with scikit-learn.", "missing": false}, {"id": "y4t1-2", "cyear": 4, "term": 1, "track": "Python", "level": "Advanced", "weeks": "4-6", "title": "Web Development with Django", "content": "Week 4: Introduction to Django and its architecture.\nWeek 5-6: Building web apps with Django.", "objective": "Understand web development using Django.", "project": "Develop a web application using Django framework.", "missing": false}, {"id": "y4t1-3", "cyear": 4, "term": 1, "track": "Python", "level": "Advanced", "weeks": "7-10", "title": "Advanced Python Projects", "content": "Week 7-8: Developing scalable applications.\nWeek 9-10: Exploring Python for automation and scripting.", "objective": "Create scalable and automated Python applications.", "project": "Develop an automation script for a specific task.", "missing": false}, {"id": "y4t2-1", "cyear": 4, "term": 2, "track": "Java", "level": "Beginner", "weeks": "1-3", "title": "Introduction to Java", "content": "Week 1-2: Basic Java syntax, variables, and data types.\nWeek 3: Conditional statements and loops.", "objective": "Understand fundamental Java concepts.", "project": "Create simple programs using basic Java.", "missing": false}, {"id": "y4t2-2", "cyear": 4, "term": 2, "track": "Java", "level": "Beginner", "weeks": "4-6", "title": "Object-Oriented Programming", "content": "Week 4: Classes, objects, and inheritance in Java.\nWeek 5-6: Polymorphism and interfaces.", "objective": "Grasp object-oriented concepts in Java.", "project": "Develop applications using OOP principles.", "missing": false}, {"id": "y4t2-3", "cyear": 4, "term": 2, "track": "Java", "level": "Beginner", "weeks": "7-10", "title": "Handling Exceptions", "content": "Week 7-8: Exception handling in Java.\nWeek 9-10: File handling and I/O operations.", "objective": "Manage exceptions and work with files in Java.", "project": "Develop file-based applications with Java.", "missing": false}, {"id": "y4t3-1", "cyear": 4, "term": 3, "track": "Capstone", "level": "", "weeks": "1-10", "title": "Capstone Projects", "content": "", "objective": "", "project": "", "missing": false}], "classes": [{"id": "unity-scratch", "centre": "Unity High School", "name": "Scratch · Year 1", "cyear": 1, "enrolled": 15, "order": 1}, {"id": "methodist-scratch", "centre": "Methodist High School", "name": "Scratch · Year 1", "cyear": 1, "enrolled": 15, "order": 2}, {"id": "yewa-scratch", "centre": "Yewa College", "name": "Scratch · Year 1", "cyear": 1, "enrolled": 15, "order": 3}, {"id": "yewa-genai", "centre": "Yewa College", "name": "Generative AI · Year 2", "cyear": 1, "enrolled": 10, "order": 4}, {"id": "yewa-web", "centre": "Yewa College", "name": "Web Development · Year 2", "cyear": 1, "enrolled": 10, "order": 5}], "sessions": [{"date": "2026-10-14", "classId": "yewa-scratch", "term": 1, "year": "2026/2027", "curriculumId": "y1t1-1", "topic": "", "week": 1, "status": "met", "present": 14, "enrolled": 15, "presentations": 4, "activities": ["Taught a new topic", "Hands-on practice"], "win": "Every learner found the stage, the sprites and the block categories", "challenge": "Only 5 laptops for 15 learners", "support": "A laptop rota so each pair gets 30 minutes", "next": "Make a sprite move and talk", "evidence": "", "createdAt": 1760000000000, "updatedAt": 1760000000000, "example": true, "id": "ex1", "centre": "Yewa College", "className": "Scratch · Year 1", "loggedBy": "Example"}, {"date": "2026-10-21", "classId": "yewa-scratch", "term": 1, "year": "2026/2027", "curriculumId": "y1t1-1", "topic": "", "week": 2, "status": "partly", "present": 12, "enrolled": 15, "presentations": 3, "activities": ["Hands-on practice", "Built project work"], "win": "Pairs made a sprite walk across the stage and say hello", "challenge": "Some learners mixed up the say and think blocks", "support": "", "next": "Start a short animated story", "evidence": "", "createdAt": 1760000000001, "updatedAt": 1760000000001, "example": true, "id": "ex2", "centre": "Yewa College", "className": "Scratch · Year 1", "loggedBy": "Example"}, {"date": "2026-10-28", "classId": "yewa-scratch", "term": 1, "year": "2026/2027", "curriculumId": "y1t1-1", "topic": "", "week": 3, "status": "met", "present": 15, "enrolled": 15, "presentations": 6, "activities": ["Built project work", "Student presentations"], "win": "Six learners presented their animated stories to the class", "challenge": "A power cut ended the class 20 minutes early", "support": "Backup power for the lab", "next": "Introduce sprites and movement for games", "evidence": "", "createdAt": 1760000000002, "updatedAt": 1760000000002, "example": true, "id": "ex3", "centre": "Yewa College", "className": "Scratch · Year 1", "loggedBy": "Example"}], "settings": {"name": "", "role": "Project Assistant and Centre Lead", "year": "2026/2027", "currentTerm": 1, "to": "ByteBusters · Odu'a Investment Foundation", "termStarts": {"1": "", "2": "", "3": ""}, "reportEmail": "you@gmail.com", "emailEachSession": "yes", "weeklyDay": "FRIDAY", "weeklyHour": "18"}};
+let demoDb = null;
+function demoApi(action, d) {
+  if (!demoDb) demoDb = JSON.parse(JSON.stringify(DEMO_DATA));
+  const coll = { saveSession: "sessions", deleteSession: "sessions", saveClass: "classes", deleteClass: "classes", saveCurriculum: "curriculum", deleteCurriculum: "curriculum" }[action];
+  if (action === "load") return Promise.resolve(Object.assign({ ok: true, admin: true, sheetUrl: "" }, JSON.parse(JSON.stringify(demoDb))));
+  if (action === "checkAdmin") return Promise.resolve({ ok: true, admin: true });
+  if (action === "saveSettings") { demoDb.settings = Object.assign(demoDb.settings, d.settings); return Promise.resolve({ ok: true, settings: demoDb.settings }); }
+  if (action === "emailReport") return Promise.reject(new Error("Demo mode: emails start once the Google Sheet is connected."));
+  if (action.indexOf("save") === 0) {
+    const it = Object.assign({}, d.item); if (!it.id) it.id = action.slice(4, 5).toLowerCase() + Date.now().toString(36);
+    if (coll === "sessions") { const k = demoDb.classes.find(x => x.id === it.classId) || {}; it.centre = k.centre; it.className = k.name; }
+    const i = demoDb[coll].findIndex(x => x.id === it.id); if (i >= 0) demoDb[coll][i] = it; else demoDb[coll].push(it);
+    return Promise.resolve({ ok: true, item: it });
+  }
+  if (action.indexOf("delete") === 0) { demoDb[coll] = demoDb[coll].filter(x => x.id !== d.id); return Promise.resolve({ ok: true }); }
+  return Promise.reject(new Error("Unknown action"));
+}
+
+function normalise() {
+  const order = [];
+  S.classes.forEach(k => { k.centreId = slug(k.centre); if (!order.includes(k.centre)) order.push(k.centre); });
+  S.centres = order.map((n, i) => ({ id: slug(n), name: n, order: i }));
+  S.sessions.forEach(x => { const k = classOf(x.classId); x.centreId = k ? k.centreId : slug(x.centre); });
+  S.cur.sort(sortCur);
+  S.classes.sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+  S.sessions.sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt || 0) - (a.createdAt || 0));
+}
+function apply(j) {
+  S.cur = j.curriculum || []; S.classes = j.classes || []; S.sessions = j.sessions || []; S.set = j.settings || {};
+  S.admin = !!j.admin; S.sheetUrl = j.sheetUrl || S.sheetUrl || ""; document.body.classList.toggle("admin", S.admin);
+  normalise(); S.db = true; Object.keys(S.ready).forEach(k => S.ready[k] = 1);
+  $("#rExWrap").hidden = !S.sessions.some(x => x.example);
+  fillSettings(); render();
+}
+const KEY = { sessions: "sessions", classes: "classes", curriculum: "cur" };
+const ACT = { sessions: ["saveSession", "deleteSession"], classes: ["saveClass", "deleteClass"], curriculum: ["saveCurriculum", "deleteCurriculum"] };
+async function put(col, id, data) {
+  try {
+    const j = await api(ACT[col][0], { item: Object.assign({}, data, { id: id || "" }) });
+    const list = S[KEY[col]], i = list.findIndex(x => x.id === j.item.id);
+    if (i >= 0) list[i] = j.item; else list.push(j.item);
+    normalise(); render(); return true;
+  } catch (e) { fail(e); return false; }
+}
+async function del(col, id) {
+  try { await api(ACT[col][1], { id }); S[KEY[col]] = S[KEY[col]].filter(x => x.id !== id); normalise(); render(); return true; }
+  catch (e) { fail(e); return false; }
+}
+async function load(quiet) {
+  if (!quiet) $("#topStat").textContent = "Loading…";
+  try { apply(await api("load")); $("#offline").hidden = !DEMO; if (quiet) toast("Up to date"); }
+  catch (e) { if (e.code !== "wrong_pin") offline(e.message); }
+}
+function lock(msg) {
+  S.pin = ""; S.adminPin = ""; store.del("rd-pin"); document.body.classList.remove("admin");
+  $("#gate").hidden = false; $("#gateErr").textContent = msg || ""; $("#gatePin").value = ""; setTimeout(() => $("#gatePin").focus(), 60);
+}
+$("#gateForm").addEventListener("submit", e => {
+  e.preventDefault(); const v = $("#gatePin").value.trim();
+  if (!v) { $("#gateErr").textContent = "Type the PIN first."; return; }
+  S.pin = v; store.set("rd-pin", v); $("#gate").hidden = true; load();
+});
+$("#lockBtn").addEventListener("click", () => { if (DEMO) return toast("Demo mode has no PIN."); lock(""); });
+$("#refreshBtn").addEventListener("click", () => load(true));
+addEventListener("visibilitychange", () => { if (!document.hidden && S.pin && S.db && !DEMO) load(true); });
+$("#adminForm").addEventListener("submit", async e => {
+  e.preventDefault(); $("#adminErr").textContent = "";
+  S.adminPin = $("#adminPin").value.trim();
+  try { const j = await api("checkAdmin"); if (j.admin) { S.admin = true; S.sheetUrl = j.sheetUrl || ""; document.body.classList.add("admin"); $("#adminPin").value = ""; toast("Editing unlocked"); render(); }
+    else { S.adminPin = ""; $("#adminErr").textContent = "That admin PIN is not correct."; } }
+  catch (er) { fail(er); }
+});
+function boot() {
+  if (DEMO) { S.pin = "demo"; const b = $("#offline"); b.hidden = false; b.textContent = "Demo mode: nothing is saved and no emails are sent. Connect your Google Sheet to go live (see HOW-TO-SET-UP)."; load(); return; }
+  S.pin = store.get("rd-pin");
+  if (!S.pin) lock(""); else load();
+  $("#fBy").value = store.get("rd-by");
+}
+function offline(msg) { const b = $("#offline"); b.hidden = false; b.textContent = msg; $("#topStat").textContent = "Not connected"; render(); }
+
+/* ===================== routing ===================== */
+const VIEWS = ["overview", "log", "reports", "curriculum", "setup"];
+function route() {
+  const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "overview";
+  VIEWS.forEach(x => { $("#v-" + x).hidden = x !== v; });
+  $$(".tabs a").forEach(a => a.classList.toggle("on", a.dataset.v === v));
+  S.view = v; render(); window.scrollTo(0, 0);
+}
+addEventListener("hashchange", route);
+
+function render() {
+  const loaded = Object.values(S.ready).every(Boolean);
+  const real = S.sessions.filter(s => !s.example).length;
+  $("#topStat").textContent = S.db ? (loaded ? `${real} session${real === 1 ? "" : "s"} logged` : "Loading…") : $("#topStat").textContent;
+  $("#exBanner").hidden = !S.sessions.some(s => s.example);
+  $("#trackList").innerHTML = [...new Set(S.cur.map(c => c.track).filter(Boolean))].map(t => `<option>${esc(t)}</option>`).join("");
+  $("#centreList").innerHTML = S.centres.map(c => `<option>${esc(c.name)}</option>`).join("");
+  if (S.view === "overview") renderOverview();
+  if (S.view === "log") renderLog();
+  if (S.view === "reports") renderReport();
+  if (S.view === "curriculum") renderCurriculum();
+  if (S.view === "setup") renderSetup();
+}
+
+/* ===================== overview ===================== */
+function bestStatus(list) { for (const k of ["met", "partly", "notyet"]) if (list.some(s => s.status === k)) return k; return "none"; }
+function rowsForClass(k, term, sessions) {
+  const linked = S.cur.filter(c => c.term === term && k.cyear && c.cyear === k.cyear);
+  const used = sessions.map(s => curOf(s.curriculumId)).filter(c => c && c.term === term);
+  const all = [...new Map([...linked, ...used].map(c => [c.id, c])).values()].sort(sortCur);
+  return all.map(c => ({ c, status: c.missing ? "gap" : bestStatus(sessions.filter(s => s.curriculumId === c.id)) }));
+}
+function renderOverview() {
+  const term = +$("#ovTerm").value;
+  $("#ovTitle").textContent = `${TERMS[term]}${yearNow() ? " " + yearNow() : ""} at a glance`;
+  const ss = S.sessions.filter(s => s.term === term && (!yearNow() || !s.year || s.year === yearNow()));
+  const pres = ss.reduce((a, s) => a + (+s.present || 0), 0), enr = ss.reduce((a, s) => a + (+s.enrolled || 0), 0);
+  const met = ss.filter(s => s.status === "met").length;
+  $("#ovKpis").innerHTML = [
+    ["Sessions held", ss.length, (n => `${n} class${n === 1 ? "" : "es"}`)(new Set(ss.map(s => s.classId)).size)],
+    ["Attendance", enr ? pct(pres, enr) + "%" : "—", `${pres} of ${enr} learner places`],
+    ["Objectives met", ss.length ? pct(met, ss.length) + "%" : "—", `${met} of ${ss.length} sessions`],
+    ["Presentations", ss.reduce((a, s) => a + (+s.presentations || 0), 0), "students who spoke up"]
+  ].map(([l, v, n]) => `<div class="kpi"><span class="label">${l}</span><b>${v}</b><small>${n}</small></div>`).join("");
+
+  if (!S.classes.length) { $("#ovCentres").innerHTML = `<div class="card notice">${S.db ? "No classes yet. Add your centres and classes in <a href='#setup'>Centres &amp; setup</a>." : "Your centres will show here once the desk is connected."}</div>`; }
+  else $("#ovCentres").innerHTML = S.centres.map(cn => {
+    const ks = S.classes.filter(k => k.centreId === cn.id); if (!ks.length) return "";
+    return `<div class="card centre"><h3>${esc(cn.name)}</h3>${ks.map(k => {
+      const ks_ = ss.filter(s => s.classId === k.id); const cells = rowsForClass(k, term, ks_);
+      const last = ks_[0];
+      return `<div class="cls"><div class="cls-head"><span>${esc(k.name)}</span><span class="muted" style="font-weight:600;font-size:13px">${ks_.length} session${ks_.length === 1 ? "" : "s"}${last ? " · last " + fmtShort(last.date) : ""}</span></div>
+        <div class="muted" style="font-size:12.5px">${k.cyear ? "Follows the Year " + k.cyear + " curriculum" : "Not linked to a curriculum year yet"}</div>
+        <div class="strip">${cells.length ? cells.map(x => `<span class="cell ${x.status}" title="${esc("Year " + x.c.cyear + " · " + x.c.track + " · Weeks " + x.c.weeks + " · " + x.c.title + " · " + (x.status === "gap" ? "Missing from curriculum" : STATUS[x.status] || "Not started"))}">${esc(x.c.weeks)}</span>`).join("") : `<small class="muted">No curriculum rows for this term yet.</small>`}</div></div>`;
+    }).join("")}</div>`;
+  }).join("") + `<div class="legend"><span><i style="background:var(--met)"></i>Met</span><span><i style="background:var(--partly)"></i>Partly</span><span><i style="background:var(--notyet)"></i>Not yet</span><span><i style="border:1.5px dashed var(--muted)"></i>Not started</span><span><i style="border:1.5px dashed var(--gap)"></i>Missing from curriculum</span></div>`;
+
+  const att = ss.filter(s => s.challenge || s.support || s.status === "notyet").slice(0, 5);
+  $("#ovAttention").innerHTML = att.length ? att.map(s => `<li><b>${esc(s.support ? "Support: " + s.support : s.challenge || "Objective not yet met")}</b><small>${esc(classLabel(classOf(s.classId)))} · ${fmtShort(s.date)}${s.example ? " · Example" : ""}</small></li>`).join("") : `<li class="muted">Nothing flagged this term.</li>`;
+  const wins = ss.filter(s => s.win).slice(0, 4);
+  $("#ovWins").innerHTML = wins.length ? wins.map(s => `<li><b>${esc(s.win)}</b><small>${esc(classLabel(classOf(s.classId)))} · ${fmtShort(s.date)}${s.example ? " · Example" : ""}</small></li>`).join("") : `<li class="muted">Wins you log will show here.</li>`;
+}
+$("#ovTerm").addEventListener("change", renderOverview);
+$$("[data-quick]").forEach(b => b.addEventListener("click", () => { $("#rPeriod").value = b.dataset.quick; $("#rTerm").value = $("#ovTerm").value; periodUI(); location.hash = "reports"; }));
+
+/* ===================== log a session ===================== */
+$("#fActs").innerHTML = ACTS.map((a, i) => `<label><input type="checkbox" value="${esc(a)}" id="act${i}"><span>${esc(a)}</span></label>`).join("");
+function classOptions() {
+  return S.centres.map(cn => { const ks = S.classes.filter(k => k.centreId === cn.id); return ks.length ? `<optgroup label="${esc(cn.name)}">${ks.map(k => `<option value="${k.id}">${esc(k.name)}</option>`).join("")}</optgroup>` : ""; }).join("");
+}
+function curOptions() {
+  const k = classOf($("#fClass").value), term = +$("#fTerm").value;
+  let rows = S.cur.filter(c => c.term === term && !c.missing);
+  const linked = k && k.cyear ? rows.filter(c => c.cyear === k.cyear) : [];
+  const others = rows.filter(c => !linked.includes(c));
+  const opt = c => `<option value="${c.id}">${esc(c.track)} · Weeks ${esc(c.weeks)} · ${esc(c.title)}</option>`;
+  $("#fCurHint").textContent = k && k.cyear ? `Showing the Year ${k.cyear} curriculum first, because this class follows it.` : "This class is not linked to a curriculum year yet. Link it in Centres & setup.";
+  const years = [...new Set(others.map(c => c.cyear))].sort();
+  return `<option value="">Not a curriculum topic (type it on the right)</option>` +
+    (linked.length ? `<optgroup label="Year ${k.cyear}, ${TERMS[term]} (this class)">${linked.map(opt).join("")}</optgroup>` : "") +
+    years.map(y => `<optgroup label="Year ${y}, ${TERMS[term]}">${others.filter(c => c.cyear === y).map(opt).join("")}</optgroup>`).join("");
+}
+function topicCard() {
+  const c = curOf($("#fCur").value);
+  $("#fTopicCard").innerHTML = c ? `<div class="topic"><b>${esc(c.title)} <span class="muted" style="font-weight:600">· Year ${esc(c.cyear)} · ${esc(c.track)} ${esc(c.level || "")} · Weeks ${esc(c.weeks)}</span></b>
+    ${c.content ? `<div>${esc(c.content).replace(/\n/g, "<br>")}</div>` : ""}${c.objective ? `<div style="margin-top:4px"><b style="display:inline">Objective:</b> ${esc(c.objective)}</div>` : ""}${c.project ? `<div><b style="display:inline">Project idea:</b> ${esc(c.project)}</div>` : ""}</div>` : "";
+  if (c && !$("#fWeek").value) $("#fWeek").value = weekFrom(c.weeks) || "";
+}
+function autoWeek() {
+  const start = S.set.termStarts && S.set.termStarts[$("#fTerm").value], d = $("#fDate").value;
+  if (start && d) { const w = Math.floor((parse(d) - parse(start)) / 864e5 / 7) + 1; if (w >= 1 && w <= 14) { $("#fWeek").value = w; $("#fWeekHint").textContent = "Worked out from the term start date"; return; } }
+  $("#fWeekHint").textContent = start ? "" : "Add term start dates in setup to fill this in automatically";
+}
+function resetForm(keep) {
+  const by = $("#fBy").value; $("#logForm").reset(); $("#fBy").value = by; $("#fId").value = ""; $("#fDate").value = iso(new Date()); $("#fTerm").value = String(S.set.currentTerm || 1);
+  if (keep) $("#fClass").value = keep;
+  $("#fCur").innerHTML = curOptions(); $("#fTopicCard").innerHTML = ""; fillEnrolled(); autoWeek();
+  $("#logTitle").textContent = "Log a session"; $("#fSave").textContent = "Save session"; $("#fCancel").hidden = true; $("#fErr").textContent = "";
+}
+function fillEnrolled() { const k = classOf($("#fClass").value); if (k && k.enrolled != null && !$("#fId").value) $("#fEnrolled").value = k.enrolled; }
+let logInit = false;
+function renderLog() {
+  const keep = $("#fClass").value;
+  $("#fClass").innerHTML = S.classes.length ? classOptions() : `<option value="">Add a class in Centres &amp; setup first</option>`;
+  if (keep && classOf(keep)) $("#fClass").value = keep;
+  const keepCur = $("#fCur").value; $("#fCur").innerHTML = curOptions(); if (keepCur && curOf(keepCur)) $("#fCur").value = keepCur;
+  if (!logInit && S.ready.set && S.ready.classes) { logInit = true; resetForm(); }
+  const rows = S.sessions;
+  $("#logCount").textContent = rows.length ? `${rows.length} in total` : "";
+  $("#logRows").innerHTML = rows.length ? rows.slice(0, 40).map(s => `<tr>
+    <td class="num">${fmtShort(s.date)}</td><td>${esc(classLabel(classOf(s.classId)))}${s.example ? ' <span class="pill ex">Example</span>' : ""}${s.loggedBy ? `<div class="muted" style="font-size:12.5px">by ${esc(s.loggedBy)}</div>` : ""}</td>
+    <td>${esc(topicOf(s))}</td><td><span class="pill ${s.status}">${STATUS[s.status] || ""}</span></td>
+    <td class="num">${+s.present || 0}${s.enrolled ? "/" + s.enrolled : ""}</td>
+    <td><div class="acts"><button class="btn ghost sm" type="button" data-edit="${s.id}">Edit</button><button class="btn warn sm admin-only" type="button" data-del="${s.id}">Delete</button></div></td></tr>`).join("")
+    : `<tr><td colspan="6" class="notice">${S.db ? "No sessions yet. Your first one will appear here." : "Sessions appear here once the desk is connected."}</td></tr>`;
+}
+$("#fClass").addEventListener("change", () => { $("#fCur").innerHTML = curOptions(); topicCard(); fillEnrolled(); });
+$("#fTerm").addEventListener("change", () => { $("#fCur").innerHTML = curOptions(); topicCard(); autoWeek(); });
+$("#fDate").addEventListener("change", autoWeek);
+$("#fCur").addEventListener("change", () => { $("#fWeek").value = ""; autoWeek(); topicCard(); });
+$("#fCancel").addEventListener("click", () => resetForm());
+$("#logForm").addEventListener("submit", async e => {
+  e.preventDefault(); const err = $("#fErr"); err.textContent = "";
+  if (!S.db) { err.textContent = "The desk is not connected yet. Check your internet, then tap Refresh."; return; }
+  const k = classOf($("#fClass").value), status = (document.querySelector('input[name="fStatus"]:checked') || {}).value;
+  if (!$("#fDate").value) return err.textContent = "Choose the date of the session.";
+  if (!k) return err.textContent = "Choose the centre and class.";
+  if (!$("#fCur").value && !$("#fOther").value.trim()) return err.textContent = "Choose a curriculum topic, or type what you taught.";
+  if (!status) return err.textContent = "Say whether the objective was met, partly met or not yet met.";
+  if ($("#fPresent").value === "") return err.textContent = "Type how many learners were present.";
+  const id = $("#fId").value, old = id ? S.sessions.find(s => s.id === id) : null;
+  const data = { date: $("#fDate").value, classId: k.id, centreId: k.centreId, term: +$("#fTerm").value, year: yearNow(),
+    curriculumId: $("#fCur").value, topic: $("#fOther").value.trim(), week: +$("#fWeek").value || null, status,
+    present: +$("#fPresent").value || 0, enrolled: $("#fEnrolled").value === "" ? null : +$("#fEnrolled").value, presentations: +$("#fPres").value || 0,
+    activities: $$("#fActs input:checked").map(i => i.value), win: $("#fWin").value.trim(), challenge: $("#fChallenge").value.trim(),
+    support: $("#fSupport").value.trim(), next: $("#fNext").value.trim(), evidence: $("#fEvidence").value.trim(), loggedBy: $("#fBy").value.trim(),
+    createdAt: old ? old.createdAt || Date.now() : Date.now(), updatedAt: Date.now(), example: old ? !!old.example : false };
+  if (!data.loggedBy) return err.textContent = "Type your name in Logged by.";
+  store.set("rd-by", data.loggedBy);
+  $("#fSave").disabled = true;
+  const ok = await put("sessions", id || null, data);
+  $("#fSave").disabled = false;
+  if (ok) { toast(id ? "Session updated" : (S.set.emailEachSession === "yes" && !DEMO ? "Session saved and emailed" : "Session saved")); const by = $("#fBy").value; resetForm(k.id); $("#fBy").value = by; }
+});
+$("#logRows").addEventListener("click", async e => {
+  const ed = e.target.closest("[data-edit]"), dl = e.target.closest("[data-del]");
+  if (ed) {
+    const s = S.sessions.find(x => x.id === ed.dataset.edit); if (!s) return;
+    $("#fId").value = s.id; $("#fDate").value = s.date; $("#fClass").value = s.classId; $("#fTerm").value = String(s.term);
+    $("#fCur").innerHTML = curOptions(); $("#fCur").value = s.curriculumId || ""; $("#fOther").value = s.topic || ""; $("#fWeek").value = s.week || "";
+    $$('input[name="fStatus"]').forEach(r => r.checked = r.value === s.status);
+    $("#fPresent").value = s.present ?? ""; $("#fEnrolled").value = s.enrolled ?? ""; $("#fPres").value = s.presentations || 0;
+    $$("#fActs input").forEach(i => i.checked = (s.activities || []).includes(i.value));
+    ["Win", "Challenge", "Support", "Next", "Evidence"].forEach(f => $("#f" + f).value = s[f.toLowerCase()] || ""); $("#fBy").value = s.loggedBy || $("#fBy").value;
+    topicCard(); $("#logTitle").textContent = "Edit session"; $("#fSave").textContent = "Save changes"; $("#fCancel").hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  if (dl) {
+    if (dl.dataset.sure) { dl.disabled = true; if (await del("sessions", dl.dataset.del)) toast("Session deleted"); }
+    else { dl.dataset.sure = "1"; dl.textContent = "Tap again to delete"; setTimeout(() => { if (dl.isConnected) { delete dl.dataset.sure; dl.textContent = "Delete"; } }, 4000); }
+  }
+});
+
+/* ===================== reports ===================== */
+function periodUI() {
+  const p = $("#rPeriod").value; $("#rCustom").hidden = p !== "custom"; $("#rTermWrap").hidden = p !== "term";
+}
+function range() {
+  const p = $("#rPeriod").value, t = new Date(); t.setHours(0, 0, 0, 0);
+  const mon = new Date(t); mon.setDate(t.getDate() - ((t.getDay() + 6) % 7));
+  if (p === "thisweek") { const e = new Date(mon); e.setDate(mon.getDate() + 6); return [iso(mon), iso(e), "Weekly report"]; }
+  if (p === "lastweek") { const s = new Date(mon); s.setDate(mon.getDate() - 7); const e = new Date(mon); e.setDate(mon.getDate() - 1); return [iso(s), iso(e), "Weekly report"]; }
+  if (p === "thismonth") return [iso(new Date(t.getFullYear(), t.getMonth(), 1)), iso(new Date(t.getFullYear(), t.getMonth() + 1, 0)), "Monthly report"];
+  if (p === "lastmonth") return [iso(new Date(t.getFullYear(), t.getMonth() - 1, 1)), iso(new Date(t.getFullYear(), t.getMonth(), 0)), "Monthly report"];
+  if (p === "custom") return [$("#rFrom").value || iso(t), $("#rTo").value || iso(t), "Activity report"];
+  return [null, null, "Termly report"];
+}
+const narrative = {};   // summary text the user edited or Claude wrote, per report
+function buildReport() {
+  const [from, to, kind] = range(), term = +$("#rTerm").value, centre = $("#rCentre").value, withEx = $("#rEx").value === "yes";
+  let ss = S.sessions.filter(s => (withEx || !s.example) && (!centre || s.centreId === centre));
+  ss = kind === "Termly report" ? ss.filter(s => s.term === term && (!yearNow() || !s.year || s.year === yearNow())) : ss.filter(s => s.date >= from && s.date <= to);
+  ss = ss.slice().sort((a, b) => a.date.localeCompare(b.date));
+  const dates = ss.map(s => s.date);
+  const pFrom = from || dates[0], pTo = to || dates[dates.length - 1];
+  const pres = ss.reduce((a, s) => a + (+s.present || 0), 0), enr = ss.reduce((a, s) => a + (+s.enrolled || 0), 0);
+  const cnt = k => ss.filter(s => s.status === k).length;
+  const centres = [...new Set(ss.map(s => s.centreId))].map(centreOf).filter(Boolean);
+  const classes = [...new Set(ss.map(s => s.classId))].map(classOf).filter(Boolean);
+  const tag = s => classLabel(classOf(s.classId));
+  const pick = f => ss.filter(s => s[f]).map(s => ({ who: tag(s), date: s.date, text: s[f], example: s.example }));
+  const termNo = kind === "Termly report" ? term : (ss[0] ? ss[0].term : (S.set.currentTerm || 1));
+  let coverage = [];
+  if (kind === "Termly report") {
+    const ks = centre ? S.classes.filter(k => k.centreId === centre) : S.classes;
+    ks.forEach(k => rowsForClass(k, term, ss.filter(s => s.classId === k.id)).forEach(x => coverage.push({ cls: classLabel(k), row: x.c, status: x.status })));
+  }
+  const rep = {
+    kind, from: pFrom, to: pTo, term: termNo, year: yearNow(), centreName: centre ? (centreOf(centre) || {}).name : "All centres",
+    stats: { sessions: ss.length, centres: centres.map(c => c.name), classes: classes.length, present: pres, enrolled: enr, attendance: enr ? pct(pres, enr) : null,
+      met: cnt("met"), partly: cnt("partly"), notyet: cnt("notyet"), presentations: ss.reduce((a, s) => a + (+s.presentations || 0), 0) },
+    sessions: ss, coverage, wins: pick("win"), challenges: pick("challenge"), support: pick("support"), next: pick("next"),
+    evidence: ss.filter(s => s.evidence).map(s => ({ who: tag(s), date: s.date, url: s.evidence })),
+    hasExamples: ss.some(s => s.example)
+  };
+  rep.key = [kind, rep.from, rep.to, term, centre, withEx].join("|");
+  const sessionsWord = n => n + " session" + (n === 1 ? "" : "s");
+  rep.auto = ss.length ? `${kind === "Termly report" ? "This term" : "In this period"}, ByteBusters held ${sessionsWord(ss.length)} across ${centres.length} centre${centres.length === 1 ? "" : "s"} (${centres.map(c => c.name).join(", ")}), covering ${classes.length} class${classes.length === 1 ? "" : "es"}. ` +
+    (enr ? `Average attendance was ${rep.stats.attendance}% (${pres} of ${enr} learner places). ` : `${pres} learner attendances were recorded. `) +
+    `The learning objective was met in ${rep.stats.met}, partly met in ${rep.stats.partly} and not yet met in ${rep.stats.notyet} ${ss.length === 1 ? "session" : "sessions"}. ` +
+    (rep.stats.presentations ? `Students gave ${rep.stats.presentations} presentation${rep.stats.presentations === 1 ? "" : "s"} of their work.` : "")
+    : "No sessions were logged for this period.";
+  rep.ref = `BB/${(yearNow() || String(new Date().getFullYear())).replace("/", "-")}/T${termNo}/${kind === "Termly report" ? "TERM" : (rep.from || "").replace(/-/g, "")}`;
+  return rep;
+}
+function statusPill(k) { return k === "gap" ? `<span class="pill gap">Missing from curriculum</span>` : `<span class="pill ${k}">${STATUS[k] || "Not started"}</span>`; }
+let lastRep = null;
+function renderReport() {
+  periodUI();
+  const keepC = $("#rCentre").value;
+  $("#rCentre").innerHTML = `<option value="">All centres</option>` + S.centres.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join("");
+  $("#rCentre").value = keepC && centreOf(keepC) ? keepC : "";
+  const r = lastRep = buildReport();
+  const sum = narrative[r.key] ?? r.auto;
+  const period = r.from ? (r.from === r.to ? fmt(r.from) : `${fmt(r.from)} to ${fmt(r.to)}`) : "No sessions yet";
+  const bullets = (list, empty) => list.length ? `<ul>${list.map(x => `<li>${esc(x.text)} <span style="color:#6A776E">(${esc(x.who)}, ${fmtShort(x.date)}${x.example ? ", example" : ""})</span></li>`).join("")}</ul>` : `<p class="empty">${empty}</p>`;
+  $("#sheet").innerHTML = `
+    <div class="lh"><div><div class="label" style="color:#4E5E53">ByteBusters Coding Centres</div><h2>${esc(r.kind)}: ${esc(r.centreName)}</h2>
+      <div style="color:#4E5E53;font-size:14px">${esc(TERMS[r.term])}${r.year ? ", " + esc(r.year) : ""} · ${esc(period)}</div></div>
+      <div class="ref">Ref ${esc(r.ref)}<br>${S.set.to ? "To: " + esc(S.set.to) : ""}</div></div>
+    ${r.hasExamples ? `<p style="background:#FFF3C8;color:#5A4500;padding:8px 12px;border-radius:8px;font-weight:600;margin-top:14px">This report includes example sessions. Switch "Include example sessions" to No before you send it.</p>` : ""}
+    <div class="facts">
+      <div><small>Sessions</small><b>${r.stats.sessions}</b></div>
+      <div><small>Attendance</small><b>${r.stats.attendance == null ? "—" : r.stats.attendance + "%"}</b></div>
+      <div><small>Objectives met</small><b>${r.stats.met}/${r.stats.sessions}</b></div>
+      <div><small>Presentations</small><b>${r.stats.presentations}</b></div></div>
+    <h3>1. Summary</h3>
+    <textarea id="rSummary" aria-label="Summary, you can edit it">${esc(sum)}</textarea>
+    <div class="row" style="margin-top:6px"><small style="color:#6A776E">You can edit this summary. Your words stay while this page is open.</small>${narrative[r.key] != null ? `<button class="btn ghost sm" type="button" id="rReset">Go back to the automatic summary</button>` : ""}</div>
+    <h3>2. Sessions delivered</h3>
+    ${r.sessions.length ? `<div class="tbl"><table><thead><tr><th>Date</th><th>Centre · class</th><th>Curriculum topic</th><th>Objective</th><th>Present</th></tr></thead><tbody>
+      ${r.sessions.map(s => `<tr><td class="num">${fmtShort(s.date)}</td><td>${esc(classLabel(classOf(s.classId)))}</td><td>${s.week ? "Wk " + s.week + ": " : ""}${esc(topicOf(s))}</td><td>${statusPill(s.status)}</td><td class="num">${+s.present || 0}${s.enrolled ? "/" + s.enrolled : ""}</td></tr>`).join("")}</tbody></table></div>` : `<p class="empty">No sessions logged in this period.</p>`}
+    ${r.kind === "Termly report" ? `<h3>3. Curriculum coverage</h3>${r.coverage.length ? `<div class="tbl"><table><thead><tr><th>Class</th><th>Weeks</th><th>Course title</th><th>Status</th></tr></thead><tbody>
+      ${r.coverage.map(x => `<tr><td>${esc(x.cls)}</td><td class="num">${esc(x.row.weeks)}</td><td>Year ${esc(x.row.cyear)} · ${esc(x.row.track)} · ${esc(x.row.title)}</td><td>${statusPill(x.status)}</td></tr>`).join("")}</tbody></table></div>` : `<p class="empty">Link each class to a curriculum year in setup to see coverage here.</p>`}` : ""}
+    <h3>${r.kind === "Termly report" ? 4 : 3}. Highlights</h3>${bullets(r.wins, "No wins logged.")}
+    <h3>${r.kind === "Termly report" ? 5 : 4}. Challenges</h3>${bullets(r.challenges, "No challenges logged.")}
+    <h3>${r.kind === "Termly report" ? 6 : 5}. Support needed</h3>${bullets(r.support, "No support requested.")}
+    <h3>${r.kind === "Termly report" ? 7 : 6}. Next steps</h3>${bullets(r.next, "No next steps logged.")}
+    ${r.evidence.length ? `<h3>${r.kind === "Termly report" ? 8 : 7}. Evidence</h3><ul>${r.evidence.map(x => `<li>${esc(x.who)}, ${fmtShort(x.date)}: <a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.url)}</a></li>`).join("")}</ul>` : ""}
+    <div class="sign"><div>Prepared by <b>${esc(S.set.name || "________________")}</b>${S.set.role ? ", " + esc(S.set.role) : ""}</div><div>Date: ${fmt(iso(new Date()))}</div></div>`;
+  $("#rSummary").addEventListener("input", e => { narrative[r.key] = e.target.value; });
+  const rs = $("#rReset"); if (rs) rs.addEventListener("click", () => { delete narrative[r.key]; renderReport(); });
+  $("#rCopyBox").hidden = true;
+}
+["#rPeriod", "#rFrom", "#rTo", "#rTerm", "#rCentre", "#rEx"].forEach(s => $(s).addEventListener("change", renderReport));
+
+function reportText(r) {
+  const L = [], sec = (n, t) => L.push("", `${n}. ${t.toUpperCase()}`);
+  const list = (a, e) => a.length ? a.forEach(x => L.push(`- ${x.text} (${x.who}, ${fmtShort(x.date)})`)) : L.push(e);
+  L.push(`BYTEBUSTERS ${r.kind.toUpperCase()}: ${r.centreName}`, `${TERMS[r.term]}${r.year ? ", " + r.year : ""} · ${r.from ? fmt(r.from) + " to " + fmt(r.to) : ""}`, `Ref ${r.ref}${S.set.to ? " · To: " + S.set.to : ""}`);
+  L.push("", `Sessions: ${r.stats.sessions} · Attendance: ${r.stats.attendance == null ? "n/a" : r.stats.attendance + "%"} · Objectives met: ${r.stats.met}/${r.stats.sessions} · Presentations: ${r.stats.presentations}`);
+  sec(1, "Summary"); L.push(narrative[r.key] ?? r.auto);
+  sec(2, "Sessions delivered");
+  r.sessions.length ? r.sessions.forEach(s => L.push(`- ${fmtShort(s.date)} · ${classLabel(classOf(s.classId))} · ${s.week ? "Wk " + s.week + ": " : ""}${topicOf(s)} · ${STATUS[s.status]} · ${+s.present || 0}${s.enrolled ? "/" + s.enrolled : ""} present`)) : L.push("No sessions logged.");
+  let n = 3;
+  if (r.kind === "Termly report") { sec(n++, "Curriculum coverage"); r.coverage.forEach(x => L.push(`- ${x.cls} · Weeks ${x.row.weeks} · ${x.row.title} · ${x.status === "gap" ? "Missing from curriculum" : STATUS[x.status] || "Not started"}`)); }
+  sec(n++, "Highlights"); list(r.wins, "None logged.");
+  sec(n++, "Challenges"); list(r.challenges, "None logged.");
+  sec(n++, "Support needed"); list(r.support, "None requested.");
+  sec(n++, "Next steps"); list(r.next, "None logged.");
+  if (r.evidence.length) { sec(n++, "Evidence"); r.evidence.forEach(x => L.push(`- ${x.who}, ${fmtShort(x.date)}: ${x.url}`)); }
+  L.push("", `Prepared by ${S.set.name || "________"}${S.set.role ? ", " + S.set.role : ""} · ${fmt(iso(new Date()))}`);
+  return L.join("\n");
+}
+$("#rCopy").addEventListener("click", async () => {
+  const txt = reportText(lastRep);
+  try { await navigator.clipboard.writeText(txt); toast("Report copied. Paste it into your email or document."); }
+  catch (e) { const b = $("#rCopyBox"); b.hidden = false; b.value = txt; b.focus(); b.select(); toast("Copy did not work here. The text is selected below: copy it yourself."); }
+});
+const fileBase = r => `ByteBusters ${r.kind} ${r.centreName} ${r.from || ""}${r.to && r.to !== r.from ? " to " + r.to : ""}`.replace(/[\\/:*?"<>|]/g, "-").trim();
+async function save(filename, data) {
+  const blob = data instanceof Blob ? data : new Blob([data], { type: filename.endsWith(".csv") ? "text/csv;charset=utf-8" : "text/plain;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); toast("Downloaded " + filename);
+}
+$("#rCsv").addEventListener("click", () => {
+  const r = lastRep, q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const head = ["Date", "Centre", "Class", "Term", "Week", "Track", "Curriculum topic", "Objective", "Present", "Enrolled", "Presentations", "What happened", "Win", "Challenge", "Support needed", "Next session", "Evidence", "Example"];
+  const rows = r.sessions.map(s => { const k = classOf(s.classId) || {}, c = curOf(s.curriculumId); return [s.date, (centreOf(s.centreId) || {}).name, k.name, TERMS[s.term], s.week, c ? c.track : "", c ? c.title : s.topic, STATUS[s.status], s.present, s.enrolled, s.presentations, (s.activities || []).join("; "), s.win, s.challenge, s.support, s.next, s.evidence, s.example ? "yes" : ""]; });
+  save(fileBase(r) + ".csv", "﻿" + [head, ...rows].map(x => x.map(q).join(",")).join("\r\n"));
+});
+
+/* Word file: loads the docx library only when needed */
+function loadDocx() {
+  if (window.docx) return Promise.resolve(window.docx);
+  return new Promise((ok, no) => { const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"; s.onload = () => window.docx ? ok(window.docx) : no(new Error("docx")); s.onerror = no; document.head.appendChild(s); });
+}
+$("#rDocx").addEventListener("click", async () => {
+  const b = $("#rDocx"), label = b.textContent; b.disabled = true; b.innerHTML = '<span class="spin"></span> Making the Word file';
+  try {
+    const d = await loadDocx(), r = lastRep;
+    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, ShadingType, BorderStyle, AlignmentType } = d;
+    const G = "0B4F2E", P = t => new Paragraph({ children: [new TextRun({ text: t, size: 22 })], spacing: { after: 100 } });
+    const H = t => new Paragraph({ children: [new TextRun({ text: t.toUpperCase(), bold: true, color: G, size: 22 })], spacing: { before: 280, after: 100 } });
+    const bul = t => new Paragraph({ children: [new TextRun({ text: t, size: 21 })], bullet: { level: 0 } });
+    const cell = (t, head, w) => new TableCell({ width: { size: w, type: WidthType.PERCENTAGE }, shading: head ? { type: ShadingType.CLEAR, color: "auto", fill: "E3F1E8" } : undefined,
+      margins: { top: 60, bottom: 60, left: 80, right: 80 }, children: [new Paragraph({ children: [new TextRun({ text: String(t ?? ""), bold: !!head, size: 19 })] })] });
+    const table = (head, rows, widths) => new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [new TableRow({ tableHeader: true, children: head.map((h, i) => cell(h, true, widths[i])) }), ...rows.map(row => new TableRow({ children: row.map((c, i) => cell(c, false, widths[i])) }))] });
+    const items = (a, e) => a.length ? a.map(x => bul(`${x.text} (${x.who}, ${fmtShort(x.date)})`)) : [P(e)];
+    const kids = [
+      new Paragraph({ children: [new TextRun({ text: "BYTEBUSTERS CODING CENTRES", bold: true, color: "59695E", size: 18 })] }),
+      new Paragraph({ children: [new TextRun({ text: `${r.kind}: ${r.centreName}`, bold: true, color: G, size: 36 })], spacing: { after: 60 } }),
+      P(`${TERMS[r.term]}${r.year ? ", " + r.year : ""} · ${r.from ? fmt(r.from) + " to " + fmt(r.to) : ""}`),
+      P(`Ref ${r.ref}${S.set.to ? " · To: " + S.set.to : ""}`),
+      new Paragraph({ border: { bottom: { color: "0F6B3E", style: BorderStyle.SINGLE, size: 12, space: 4 } }, children: [] }),
+      table(["Sessions", "Attendance", "Objectives met", "Presentations"], [[r.stats.sessions, r.stats.attendance == null ? "n/a" : r.stats.attendance + "%", `${r.stats.met}/${r.stats.sessions}`, r.stats.presentations]], [25, 25, 25, 25]),
+      H("1. Summary"), ...(narrative[r.key] ?? r.auto).split(/\n+/).filter(Boolean).map(P),
+      H("2. Sessions delivered"),
+      r.sessions.length ? table(["Date", "Centre · class", "Curriculum topic", "Objective", "Present"], r.sessions.map(s => [fmtShort(s.date), classLabel(classOf(s.classId)), (s.week ? "Wk " + s.week + ": " : "") + topicOf(s), STATUS[s.status], (+s.present || 0) + (s.enrolled ? "/" + s.enrolled : "")]), [12, 26, 36, 14, 12]) : P("No sessions logged.")
+    ];
+    let n = 3;
+    if (r.kind === "Termly report") kids.push(H(`${n++}. Curriculum coverage`), r.coverage.length ? table(["Class", "Weeks", "Course title", "Status"], r.coverage.map(x => [x.cls, x.row.weeks, "Year " + x.row.cyear + " · " + x.row.track + " · " + x.row.title, x.status === "gap" ? "Missing from curriculum" : STATUS[x.status] || "Not started"]), [30, 10, 40, 20]) : P("No classes linked to a curriculum year."));
+    kids.push(H(`${n++}. Highlights`), ...items(r.wins, "None logged."), H(`${n++}. Challenges`), ...items(r.challenges, "None logged."),
+      H(`${n++}. Support needed`), ...items(r.support, "None requested."), H(`${n++}. Next steps`), ...items(r.next, "None logged."));
+    if (r.evidence.length) kids.push(H(`${n++}. Evidence`), ...r.evidence.map(x => bul(`${x.who}, ${fmtShort(x.date)}: ${x.url}`)));
+    kids.push(new Paragraph({ spacing: { before: 400 }, children: [new TextRun({ text: `Prepared by ${S.set.name || "____________________"}${S.set.role ? ", " + S.set.role : ""}`, size: 21 })] }),
+      new Paragraph({ children: [new TextRun({ text: `Date: ${fmt(iso(new Date()))}      Signature: ____________________`, size: 21 })] }));
+    const doc = new Document({ creator: S.set.name || "ByteBusters", title: `${r.kind} ${r.centreName}`, styles: { default: { document: { run: { font: "Calibri" } } } },
+      sections: [{ properties: { page: { margin: { top: 1000, bottom: 1000, left: 1100, right: 1100 } } }, children: kids }] });
+    const blob = await Packer.toBlob(doc);
+    await save(fileBase(r) + ".docx", blob);
+  } catch (e) { console.error(e); toast("Could not make the Word file. Use Copy as text instead."); }
+  b.disabled = false; b.textContent = label;
+});
+
+/* Email this report to the Centre Lead's Gmail (sent by the Google Sheet) */
+$("#rEmail").addEventListener("click", async () => {
+  const r = lastRep, b = $("#rEmail");
+  if (!r.sessions.length) return toast("There are no sessions in this report yet.");
+  b.disabled = true; b.innerHTML = '<span class="spin"></span> Sending';
+  try {
+    const c = centreOf($("#rCentre").value);
+    const j = await api("emailReport", { report: { kind: r.kind, termly: r.kind === "Termly report", term: r.term, from: r.from, to: r.to, centre: c ? c.name : "", summary: narrative[r.key] ?? r.auto } });
+    toast("Report sent to " + j.to);
+  } catch (e) { fail(e); }
+  b.disabled = false; b.textContent = "Email this report";
+});
+
+/* ===================== curriculum ===================== */
+function renderCurriculum() {
+  if (!S.cur.length) { $("#cList").innerHTML = `<div class="card notice">${S.db ? "No curriculum rows yet. Add a row or paste a table." : "The curriculum appears here once the desk is connected."}</div>`; return; }
+  const f = $("#cYearFilter").value, years = f === "all" ? [1, 2, 3, 4] : [+f];
+  $("#cList").innerHTML = years.map(y => [1, 2, 3].map(t => {
+    const rows = S.cur.filter(c => c.cyear === y && c.term === t); if (!rows.length) return "";
+    return `<div class="term-h"><h2>Year ${y} · ${TERMS[t]}</h2><span class="bar"></span><span class="muted" style="font-size:13px">${[...new Set(rows.map(r => r.track))].join(", ")}</span></div>
+    <div class="card tbl cur"><table><thead><tr><th>Track</th><th>Weeks</th><th>Course title</th><th>Course content</th><th>Objective</th><th>Project idea</th><th class="admin-only"></th></tr></thead><tbody>
+    ${rows.map(c => `<tr class="${c.missing ? "gap" : ""}"><td>${esc(c.track)}<div class="muted" style="font-weight:400;font-size:12.5px">${esc(c.level || "")}</div></td><td class="num">${esc(c.weeks)}</td>
+      <td>${c.missing ? statusPill("gap") + "<br>" : ""}${esc(c.title)}</td><td style="min-width:220px">${esc(c.content || "").replace(/\n/g, "<br>")}</td><td style="min-width:160px">${esc(c.objective || "")}</td><td style="min-width:160px">${esc(c.project || "")}</td>
+      <td class="admin-only"><div class="acts"><button class="btn ghost sm" type="button" data-cedit="${c.id}">${c.missing ? "Fill in" : "Edit"}</button><button class="btn warn sm" type="button" data-cdel="${c.id}">Delete</button></div></td></tr>`).join("")}
+    </tbody></table></div>`;
+  }).join("")).join("") || `<div class="card notice">No rows for this year yet.</div>`;
+}
+$("#cYearFilter").addEventListener("change", renderCurriculum);
+function curForm(c) {
+  $("#cForm").hidden = false; $("#cPaste").hidden = true;
+  $("#cId").value = c ? c.id : ""; $("#cYear").value = c ? String(c.cyear || 1) : ($("#cYearFilter").value === "all" ? "1" : $("#cYearFilter").value); $("#cTrack").value = c ? c.track : ""; $("#cLevel").value = c ? c.level || "" : ""; $("#cTerm").value = c ? String(c.term) : "1";
+  $("#cWeeks").value = c ? c.weeks : ""; $("#cTitle").value = c && !c.missing ? c.title : ""; $("#cObj").value = c ? c.objective || "" : "";
+  $("#cContent").value = c ? c.content || "" : ""; $("#cProject").value = c ? c.project || "" : ""; $("#cTrack").focus();
+}
+$("#cAddBtn").addEventListener("click", () => curForm(null));
+$("#cCancel").addEventListener("click", () => $("#cForm").hidden = true);
+$("#cForm").addEventListener("submit", async e => {
+  e.preventDefault(); if (!S.db) return toast("The desk is not connected yet.");
+  if (!$("#cTrack").value.trim() || !$("#cWeeks").value.trim() || !$("#cTitle").value.trim()) return toast("Track, weeks and course title are needed.");
+  const data = { cyear: +$("#cYear").value, track: $("#cTrack").value.trim(), level: $("#cLevel").value.trim(), term: +$("#cTerm").value, weeks: $("#cWeeks").value.trim().replace(/\s/g, ""),
+    title: $("#cTitle").value.trim(), objective: $("#cObj").value.trim(), content: $("#cContent").value.trim(), project: $("#cProject").value.trim(), missing: false };
+  if (await put("curriculum", $("#cId").value || null, data)) { toast("Curriculum row saved"); $("#cForm").hidden = true; }
+});
+$("#cList").addEventListener("click", async e => {
+  const ed = e.target.closest("[data-cedit]"), dl = e.target.closest("[data-cdel]");
+  if (ed) { curForm(curOf(ed.dataset.cedit)); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  if (dl) {
+    if (S.sessions.some(s => s.curriculumId === dl.dataset.cdel)) return toast("Sessions use this row. Edit it instead of deleting it.");
+    if (dl.dataset.sure) { dl.disabled = true; if (await del("curriculum", dl.dataset.cdel)) toast("Row deleted"); }
+    else { dl.dataset.sure = "1"; dl.textContent = "Tap again"; setTimeout(() => { if (dl.isConnected) { delete dl.dataset.sure; dl.textContent = "Delete"; } }, 4000); }
+  }
+});
+function parsePaste(txt) {
+  return txt.split(/\r?\n/).map(l => l.split("\t").map(x => x.trim())).filter(c => c.length >= 6 && /\d/.test(c[0]))
+    .map(c => ({ cyear: Math.min(4, Math.max(1, parseInt(c[0].replace(/\D/g, ""), 10) || 1)), track: c[1], level: c[2] || "", term: Math.min(3, Math.max(1, parseInt(c[3], 10) || 1)), weeks: (c[4] || "").replace(/\s/g, "").replace(/_/g, "-"), title: c[5] || "", content: c[6] || "", objective: c[7] || "", project: c[8] || "", missing: false }))
+    .filter(r => r.weeks && r.title);
+}
+$("#cPasteBtn").addEventListener("click", () => { $("#cPaste").hidden = false; $("#cForm").hidden = true; $("#cPasteBox").focus(); });
+$("#cPasteCancel").addEventListener("click", () => $("#cPaste").hidden = true);
+$("#cPasteBox").addEventListener("input", () => { const n = parsePaste($("#cPasteBox").value).length; $("#cPasteMsg").textContent = n ? `${n} row${n === 1 ? "" : "s"} ready to add.` : "No complete rows yet. Each row needs at least Year, Track, Level, Term, Weeks and Course title, separated by tabs."; });
+$("#cPasteGo").addEventListener("click", async () => {
+  const rows = parsePaste($("#cPasteBox").value); if (!rows.length) return toast("Nothing to add yet.");
+  if (!S.db) return toast("The desk is not connected yet.");
+  const b = $("#cPasteGo"); b.disabled = true; let ok = 0;
+  for (const r of rows) if (await put("curriculum", null, r)) ok++;
+  b.disabled = false; toast(`${ok} row${ok === 1 ? "" : "s"} added`); if (ok) { $("#cPasteBox").value = ""; $("#cPaste").hidden = true; }
+});
+
+/* ===================== setup ===================== */
+function fillSettings() {
+  const s = S.set, t = s.termStarts || {};
+  if (document.activeElement && document.activeElement.closest && document.activeElement.closest("#sForm")) return;
+  $("#sName").value = s.name || ""; $("#sRole").value = s.role || ""; $("#sYear").value = s.year || ""; $("#sTerm").value = String(s.currentTerm || 1);
+  $("#sTo").value = s.to || ""; $("#sEmail").value = s.reportEmail || ""; $("#sEach").value = s.emailEachSession === "no" ? "no" : "yes"; $("#sT1").value = t["1"] || ""; $("#sT2").value = t["2"] || ""; $("#sT3").value = t["3"] || "";
+  $("#ovTerm").value = String(s.currentTerm || 1); if (!$("#rTerm").dataset.touched) $("#rTerm").value = String(s.currentTerm || 1);
+}
+$("#rTerm").addEventListener("change", () => $("#rTerm").dataset.touched = 1);
+$("#sForm").addEventListener("submit", async e => {
+  e.preventDefault(); if (!S.db) return toast("The desk is not connected yet.");
+  const data = { name: $("#sName").value.trim(), role: $("#sRole").value.trim(), year: $("#sYear").value.trim(), currentTerm: +$("#sTerm").value, to: $("#sTo").value.trim(),
+    termStarts: { 1: $("#sT1").value, 2: $("#sT2").value, 3: $("#sT3").value }, reportEmail: $("#sEmail").value.trim(), emailEachSession: $("#sEach").value };
+  try { const j = await api("saveSettings", { settings: data }); S.set = j.settings; document.activeElement.blur(); fillSettings(); render(); toast("Details saved"); } catch (er) { fail(er); }
+});
+function renderSetup() {
+  const st = S.set;
+  $("#sheetInfo").innerHTML = `<h3 style="font-size:18px;margin-bottom:6px">Where everything goes</h3>
+    <p style="margin:0">Every session is saved as a row in your Google Sheet${S.sheetUrl ? ` (<a href="${esc(S.sheetUrl)}" target="_blank" rel="noopener">open the Sheet</a>)` : ""}.
+    ${st.reportEmail ? `Reports go to <b>${esc(st.reportEmail)}</b>: ${st.emailEachSession === "yes" ? "an email for every session, plus " : ""}a weekly report every ${esc(String(st.weeklyDay || "Friday").toLowerCase())}.` : "Add a report email below to receive reports."}
+    PINs are changed in the Settings tab of the Sheet.</p>`;
+  $("#sClasses").innerHTML = S.centres.length ? S.centres.map(cn => `<div style="margin-bottom:12px"><b>${esc(cn.name)}</b>${cn.town ? ` <span class="muted">· ${esc(cn.town)}</span>` : ""}
+    <ul class="list" style="margin-top:6px">${S.classes.filter(k => k.centreId === cn.id).map(k => `<li style="grid-template-columns:1fr auto;align-items:center"><div><span style="font-weight:600">${esc(k.name)}</span>
+      <small style="display:block">${k.cyear ? "Follows the Year " + k.cyear + " curriculum" : "Not linked to a curriculum year"} · ${k.enrolled ?? "?"} enrolled</small></div>
+      <div class="acts" style="display:flex;gap:6px"><button class="btn ghost sm" type="button" data-kedit="${k.id}">Edit</button><button class="btn warn sm" type="button" data-kdel="${k.id}">Remove</button></div></li>`).join("") || '<li class="muted">No classes</li>'}</ul></div>`).join("")
+    : `<p class="muted">${S.db ? "No centres yet. Add your first class below; type the school name and the centre is created with it." : "Your centres appear here once the desk is connected."}</p>`;
+}
+$("#sClasses").addEventListener("click", async e => {
+  const ed = e.target.closest("[data-kedit]"), dl = e.target.closest("[data-kdel]");
+  if (ed) { const k = classOf(ed.dataset.kedit); $("#clsId").value = k.id; $("#clsCentre").value = (centreOf(k.centreId) || {}).name || ""; $("#clsName").value = k.name; $("#clsYear").value = k.cyear ? String(k.cyear) : ""; $("#clsEnrolled").value = k.enrolled ?? ""; $("#clsSave").textContent = "Save class"; $("#clsCancel").hidden = false; }
+  if (dl) {
+    if (S.sessions.some(s => s.classId === dl.dataset.kdel)) return toast("This class has logged sessions, so it stays. Edit it instead.");
+    if (dl.dataset.sure) { const k = classOf(dl.dataset.kdel); if (await del("classes", k.id)) toast("Class removed"); }
+    else { dl.dataset.sure = "1"; dl.textContent = "Tap again"; setTimeout(() => { if (dl.isConnected) { delete dl.dataset.sure; dl.textContent = "Remove"; } }, 4000); }
+  }
+});
+function clsReset() { $("#clsForm").reset(); $("#clsId").value = ""; $("#clsSave").textContent = "Add class"; $("#clsCancel").hidden = true; }
+$("#clsCancel").addEventListener("click", clsReset);
+$("#clsForm").addEventListener("submit", async e => {
+  e.preventDefault(); if (!S.db) return toast("The desk is not connected yet.");
+  const cname = $("#clsCentre").value.trim(), name = $("#clsName").value.trim();
+  if (!cname || !name) return toast("Type the centre and the class name.");
+  const cn = S.centres.find(c => c.name.toLowerCase() === cname.toLowerCase());
+  const id = $("#clsId").value, old = id ? classOf(id) : null;
+  const data = { centre: cn ? cn.name : cname, name, cyear: $("#clsYear").value ? +$("#clsYear").value : null, enrolled: $("#clsEnrolled").value === "" ? null : +$("#clsEnrolled").value, order: old ? old.order ?? 0 : S.classes.length + 1 };
+  if (await put("classes", id || null, data)) { toast(id ? "Class saved" : "Class added"); clsReset(); }
+});
+
+$("#exDelete").addEventListener("click", async () => {
+  const b = $("#exDelete"); if (!b.dataset.sure) { b.dataset.sure = "1"; b.textContent = "Tap again to delete them"; return; }
+  b.disabled = true; let n = 0; for (const s of S.sessions.filter(s => s.example)) if (await del("sessions", s.id)) n++;
+  b.disabled = false; delete b.dataset.sure; b.textContent = "Delete the examples"; toast(`${n} example session${n === 1 ? "" : "s"} deleted`);
+});
+
+route(); boot();
+</script>
+<a href="/" id="bb-home" aria-label="Back to the home page" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;background:#0f3d5e;color:#fff;font:600 13px/1 system-ui,sans-serif;padding:9px 12px;border-radius:99px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:.88">&#8962; Home</a></body>
+</html>

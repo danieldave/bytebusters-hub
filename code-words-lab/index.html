@@ -1,0 +1,490 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Code Words Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: a classroom lab. Top: pick your game. Then 4 stations: The Box, Name or Value?, Say it right, Mix-up pairs. Big-text mode for the projector. */
+:root{
+  --bg:#F2F5F9; --surface:#FFFFFF; --sunk:#E7ECF3; --ink:#18202B; --muted:#586374; --line:#D3DBE6;
+  --accent:#2F5BD3; --accent-ink:#FFFFFF; --accent-soft:#DFE7FB;
+  --var:#FF8C1A; --var-ink:#FFFFFF; --var-deep:#DB6E00;
+  --val:#FFFFFF; --val-ink:#1D2430; --val-line:#C9D2DE;
+  --event:#FFBF00; --control:#FFAB19; --operator:#59C059; --looks:#9966FF; --custom:#FF6680; --list:#FF661A;
+  --box:#C98A4B; --box-dark:#9A6331; --box-ink:#3B2410;
+  --good:#1E8A4C; --good-soft:#DDF3E5; --bad:#C2382B; --bad-soft:#FBE3E0;
+  --display:"Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Segoe UI", system-ui, sans-serif;
+  --fs:17px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#10151C; --surface:#18202A; --sunk:#202A36; --ink:#E8EEF6; --muted:#9FAABA; --line:#2E3A48;
+  --accent:#8EA9FF; --accent-ink:#0E1A3D; --accent-soft:#22305A;
+  --val:#F4F6FA; --val-ink:#18202B; --val-line:#8C97A6;
+  --box:#B07A42; --box-dark:#7E522A; --box-ink:#2A1708;
+  --good:#5FD38E; --good-soft:#173A27; --bad:#FF8A80; --bad-soft:#41201D; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#10151C; --surface:#18202A; --sunk:#202A36; --ink:#E8EEF6; --muted:#9FAABA; --line:#2E3A48;
+  --accent:#8EA9FF; --accent-ink:#0E1A3D; --accent-soft:#22305A;
+  --val:#F4F6FA; --val-ink:#18202B; --val-line:#8C97A6;
+  --box:#B07A42; --box-dark:#7E522A; --box-ink:#2A1708;
+  --good:#5FD38E; --good-soft:#173A27; --bad:#FF8A80; --bad-soft:#41201D; color-scheme:dark; }
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--body);font-size:var(--fs);line-height:1.5;padding-inline:16px;padding-block:0 60px}
+body.big{--fs:22px}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.15;text-wrap:balance}
+h1{font-size:clamp(28px,4.4vw,42px);font-weight:700}
+h2{font-size:clamp(22px,3.2vw,30px);font-weight:600}
+h3{font-size:1.15em;font-weight:600}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1100px;margin:0 auto}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:-16px;padding:10px 16px}
+.top .wrap{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.brand{font-family:var(--display);font-weight:700;font-size:20px;margin-right:auto}
+.pick{display:flex;gap:8px;align-items:center;font-weight:700;font-size:15px}
+.pick select{font:inherit;font-weight:700;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 10px}
+.btn{border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 14px;font-weight:800}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.tab{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 16px;font-weight:800}
+.tab b{color:var(--accent);margin-right:6px}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab[aria-selected="true"] b{color:inherit}
+.lede{color:var(--muted);max-width:64ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+.rule{background:var(--ink);color:var(--bg);border-radius:14px;padding:14px 18px;font-family:var(--display);font-size:1.25em;font-weight:600}
+.rule .n{color:var(--var)} .rule .v{background:var(--val);color:var(--val-ink);border-radius:6px;padding:0 6px}
+
+/* scratch-like block chips */
+.blk{display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:7px 10px;font-weight:800;color:#fff;font-size:.95em;flex-wrap:wrap}
+.blk.data{background:var(--var)} .blk.event{background:var(--event);color:#3a2a00} .blk.control{background:var(--control)} .blk.looks{background:var(--looks)} .blk.custom{background:var(--custom)} .blk.list{background:var(--list)}
+.slot{border-radius:999px;padding:2px 10px;font-weight:800;border:2px solid transparent}
+.slot.name{background:var(--var-deep);color:#fff}
+.slot.name::after{content:" ▾";font-size:.8em}
+.slot.val{background:#fff;color:#1d2430}
+.slot.tap{cursor:pointer}
+.slot.tap:hover{border-color:#fff;box-shadow:0 0 0 2px var(--ink)}
+.slot.right{box-shadow:0 0 0 4px var(--good)}
+.slot.wrong{box-shadow:0 0 0 4px var(--bad)}
+
+/* the box */
+.lab{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:820px){.lab{grid-template-columns:1fr}}
+.boxstage{position:relative;height:300px;display:flex;align-items:flex-end;justify-content:center;background:var(--sunk);border-radius:16px;overflow:hidden}
+.box{position:relative;width:240px;height:170px;margin-bottom:26px}
+.box .back{position:absolute;inset:0 0 auto 0;height:60px;background:var(--box-dark);border-radius:10px 10px 0 0;transform:skewX(-8deg);transform-origin:bottom}
+.box .front{position:absolute;inset:40px 0 0 0;background:var(--box);border-radius:6px 6px 12px 12px;border:3px solid var(--box-dark);display:flex;align-items:center;justify-content:center;z-index:3}
+.label{background:var(--var);color:var(--var-ink);font-family:var(--display);font-weight:700;font-size:1.35em;padding:6px 16px;border-radius:8px;box-shadow:0 3px 0 var(--var-deep);transform:rotate(-2deg);max-width:210px;text-align:center}
+.label.pulse{animation:pulse .6s ease}
+@keyframes pulse{0%{transform:rotate(-2deg) scale(1)}40%{transform:rotate(-2deg) scale(1.12)}100%{transform:rotate(-2deg) scale(1)}}
+.valcard{position:absolute;left:50%;top:-34px;transform:translateX(-50%);z-index:2;background:var(--val);color:var(--val-ink);border:2px solid var(--val-line);border-radius:10px;padding:8px 18px;font-family:var(--display);font-weight:700;font-size:1.8em;min-width:110px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,.15);transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .45s}
+.valcard.out{transform:translate(160%,-120%) rotate(18deg);opacity:0}
+.valcard.in{transform:translate(-50%,-160%);opacity:0}
+.tagN,.tagV{position:absolute;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:6px}
+.tagN{left:12px;top:12px;background:var(--var);color:#fff}
+.tagV{right:12px;top:12px;background:var(--val);color:var(--val-ink);border:1.5px solid var(--val-line)}
+.monitor{display:inline-flex;align-items:center;gap:6px;background:#E6EDF7;border:1px solid #c5cfdb;border-radius:6px;padding:3px 4px 3px 8px;font-size:14px;color:#575e75;font-weight:700}
+.monitor b{background:var(--var);color:#fff;border-radius:4px;padding:1px 8px;min-width:36px;text-align:center}
+.steps{display:flex;flex-direction:column;gap:8px}
+.stepbtn{display:flex;gap:10px;align-items:center;justify-content:space-between;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
+.stepbtn:hover{border-color:var(--accent)}
+.stepbtn[disabled]{opacity:.45;cursor:default}
+.stepbtn small{display:block;color:var(--muted);font-weight:700;font-size:.8em}
+.history{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.history span{background:var(--val);color:var(--val-ink);border:1.5px solid var(--val-line);border-radius:8px;padding:2px 10px;font-weight:800;font-variant-numeric:tabular-nums}
+.history span.now{outline:3px solid var(--var)}
+.say{font-family:var(--display);font-size:1.2em;font-weight:600}
+.say .n{color:var(--var-deep)}
+.mini{display:flex;gap:18px;flex-wrap:wrap}
+.minibox{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--sunk);border-radius:14px;padding:14px 16px;min-width:150px}
+.minibox .label{font-size:1em}
+.minibox .vc{background:var(--val);color:var(--val-ink);border:2px solid var(--val-line);border-radius:8px;padding:4px 14px;font-family:var(--display);font-weight:700;font-size:1.4em}
+
+/* quiz */
+.qwrap{display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.qprompt{font-family:var(--display);font-size:1.5em;font-weight:600}
+.qprompt .n{color:var(--var-deep)}
+.feedback{font-weight:800;font-size:1.1em;padding:10px 14px;border-radius:10px}
+.feedback.ok{background:var(--good-soft);color:var(--good)} .feedback.no{background:var(--bad-soft);color:var(--bad)}
+.dots{display:flex;gap:4px}
+.dots i{width:22px;height:8px;border-radius:4px;background:var(--line)}
+.dots i.r{background:var(--good)} .dots i.w{background:var(--bad)} .dots i.c{background:var(--accent)}
+.sentence{font-size:1.35em;font-weight:700;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.word{border-radius:8px;padding:2px 8px;border:2px dashed var(--line);cursor:pointer;background:var(--surface)}
+.word:hover{border-color:var(--accent)}
+.word.right{border:2px solid var(--good);background:var(--good-soft)} .word.wrong{border:2px solid var(--bad);background:var(--bad-soft)}
+.choices{display:flex;flex-direction:column;gap:10px;width:100%}
+.choice{text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;font-weight:700;font-size:1.1em}
+.choice:hover:not([disabled]){border-color:var(--accent)}
+.choice.right{border-color:var(--good);background:var(--good-soft)} .choice.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.big-score{font-family:var(--display);font-size:3em;font-weight:700}
+
+/* pairs */
+.pairs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr));gap:16px;align-items:start}
+.pair{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.pair .ph{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch}
+.pair .side{padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.pair .side h3{font-size:1.25em}
+.pair .vs{display:flex;align-items:center;font-family:var(--display);font-weight:700;color:var(--muted);padding:0 4px}
+.pair .side p{font-size:.95em}
+.pair .side .eg{font-size:.88em;color:var(--muted)}
+.pair .test{border-top:1px solid var(--line);padding:12px 16px;background:var(--sunk);display:flex;flex-direction:column;gap:8px}
+.pair .test b{font-family:var(--display);font-weight:600}
+.pair .demo{border-top:1px solid var(--line);padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.c1{color:var(--accent)} .c2{color:var(--var-deep)}
+.listrow{display:flex;gap:6px;flex-wrap:wrap}
+.li{display:flex;flex-direction:column;align-items:center;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;min-width:64px;cursor:pointer;background:var(--surface)}
+.li span{font-size:12px;font-weight:800;background:var(--list);color:#fff;width:100%;text-align:center}
+.li b{padding:4px 8px}
+.li.on{outline:3px solid var(--accent)}
+.actors{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;min-height:64px}
+.actor{width:56px;height:56px;border-radius:12px;background:var(--looks);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;text-align:center;line-height:1.1;transition:transform .3s,opacity .3s}
+.actor.dim{opacity:.25}
+.actor.hop{transform:translateY(-10px)}
+.gate{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.gate input{width:160px;accent-color:var(--var)}
+.light{font-weight:800;padding:4px 10px;border-radius:999px}
+.light.yes{background:var(--good-soft);color:var(--good)} .light.no{background:var(--bad-soft);color:var(--bad)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="top"><div class="wrap">
+  <span class="brand">Code Words Lab</span>
+  <label class="pick" for="game">Our game
+    <select id="game"></select></label>
+  <button class="btn" id="big" type="button" aria-pressed="false">Big text</button>
+</div></header>
+
+<main class="wrap">
+  <div class="stack" style="padding-top:20px">
+    <h1>A variable is a box. The value is what is inside.</h1>
+    <p class="lede">Four short stations. Do them in order with the class, using your own game. Everything is shown on screen, so it works without sound.</p>
+  </div>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <section id="panel"></section>
+</main>
+
+<script type="application/json" id="kb">{"honest": {"t": "Honest Scale", "rules": [{"n": "Price Per Kg", "v": "1500", "why": "What the customer pays for 1 kg, and what Mama T earns on 1 honest kg."}, {"n": "Profit Per Kg", "v": "200", "why": "What the customer pays for 1 kg, and what Mama T earns on 1 honest kg."}, {"n": "Trust Gain", "v": "8", "why": "How much trust goes up or down after each customer."}, {"n": "Trust Penalty", "v": "25", "why": "How much trust goes up or down after each customer."}, {"n": "Generous Trust", "v": "12", "why": "How much trust goes up or down after each customer."}, {"n": "Impatient Penalty", "v": "5", "why": "How much trust goes up or down after each customer."}, {"n": "Start Trust", "v": "50", "why": "Trust at the start, trust needed to be TRUSTED, and trust below which customers walk away."}, {"n": "Win Trust", "v": "60", "why": "Trust at the start, trust needed to be TRUSTED, and trust below which customers walk away."}, {"n": "Walkaway Trust", "v": "30", "why": "Trust at the start, trust needed to be TRUSTED, and trust below which customers walk away."}, {"n": "Fine", "v": "10000", "why": "The inspector's fine, the biggest weight the scale shows, and seconds per scoop."}, {"n": "Max Kg", "v": "10", "why": "The inspector's fine, the biggest weight the scale shows, and seconds per scoop."}, {"n": "Scoop Time", "v": "0.3", "why": "The inspector's fine, the biggest weight the scale shows, and seconds per scoop."}], "vars": [{"n": "Price Per Kg", "k": "rule", "why": "What the customer pays for 1 kg, and what Mama T earns on 1 honest kg."}, {"n": "Profit Per Kg", "k": "rule", "why": "What the customer pays for 1 kg, and what Mama T earns on 1 honest kg."}, {"n": "Trust Gain", "k": "rule", "why": "How much trust goes up or down after each customer."}, {"n": "Trust Penalty", "k": "rule", "why": "How much trust goes up or down after each customer."}, {"n": "Generous Trust", "k": "rule", "why": "How much trust goes up or down after each customer."}, {"n": "Impatient Penalty", "k": "rule", "why": "How much trust goes up or down after each customer."}, {"n": "Start Trust", "k": "rule", "why": "Trust at the start, trust needed to be TRUSTED, and trust below which customers walk away."}, {"n": "Win Trust", "k": "rule", "why": "Trust at the start, trust needed to be TRUSTED, and trust below which customers walk away."}, {"n": "Walkaway Trust", "k": "rule", "why": "Trust at the start, trust needed to be TRUSTED, and trust below which customers walk away."}, {"n": "Fine", "k": "rule", "why": "The inspector's fine, the biggest weight the scale shows, and seconds per scoop."}, {"n": "Max Kg", "k": "rule", "why": "The inspector's fine, the biggest weight the scale shows, and seconds per scoop."}, {"n": "Scoop Time", "k": "rule", "why": "The inspector's fine, the biggest weight the scale shows, and seconds per scoop."}, {"n": "Profit ₦", "k": "counter", "why": "All the money Mama T has made today."}, {"n": "Trust", "k": "counter", "why": "How much customers trust the shop, from 0 to 100."}, {"n": "Customer", "k": "counter", "why": "Which customer we are serving, and how many come today."}, {"n": "Customers", "k": "counter", "why": "Which customer we are serving, and how many come today."}, {"n": "Vehicle", "k": "message", "why": "How the current customer arrives: walk, okada, keke, car or inspector."}, {"n": "Wanted", "k": "memory", "why": "How many kg the customer asked for."}, {"n": "Needle", "k": "counter", "why": "How many kg are on the scale."}, {"n": "Pending", "k": "counter", "why": "Scoops you asked for that are not done yet."}, {"n": "Busy", "k": "switch", "why": "Tells the Stage a scoop is in progress."}, {"n": "Sell Asked", "k": "switch", "why": "Sell Asked = SELL was pressed. Handed = the rice was really handed over."}, {"n": "Handed", "k": "switch", "why": "Sell Asked = SELL was pressed. Handed = the rice was really handed over."}, {"n": "Accepting", "k": "switch", "why": "The shop is taking this customer's order."}, {"n": "Patience", "k": "counter", "why": "How long this customer will wait (cars wait least, the inspector most)."}, {"n": "Patience Max", "k": "counter", "why": "How long this customer will wait (cars wait least, the inspector most)."}, {"n": "Honked", "k": "switch", "why": "So the customer only horns once."}, {"n": "Gain", "k": "memory", "why": "The profit from this one sale."}, {"n": "Result", "k": "message", "why": "What happened with this customer: honest, cheat, generous, left, walked, fined or certified."}, {"n": "Cheated", "k": "switch", "why": "Cheated = this shop has cheated today. Walked Last = the last customer walked away."}, {"n": "Walked Last", "k": "switch", "why": "Cheated = this shop has cheated today. Walked Last = the last customer walked away."}, {"n": "Ending", "k": "message", "why": "The end of the day (trusted, rich or closed), and the best honest profit."}, {"n": "Best Profit", "k": "message", "why": "The end of the day (trusted, rich or closed), and the best honest profit."}, {"n": "Car Count", "k": "counter", "why": "Which car this is and its colour, so cars change colour."}, {"n": "Car Color", "k": "counter", "why": "Which car this is and its colour, so cars change colour."}, {"n": "Customer X", "k": "memory", "why": "Where the customer stopped, so the rice bag and money know where to fly."}, {"n": "Customer Y", "k": "memory", "why": "Where the customer stopped, so the rice bag and money know where to fly."}, {"n": "Chart Point", "k": "counter", "why": "Which point of the chart the pen is drawing."}, {"n": "Highest Profit", "k": "helper", "why": "The top and bottom of the profit chart, and where the next dot goes."}, {"n": "Lowest Profit", "k": "helper", "why": "The top and bottom of the profit chart, and where the next dot goes."}, {"n": "Dot X", "k": "helper", "why": "The top and bottom of the profit chart, and where the next dot goes."}, {"n": "Dot Y", "k": "helper", "why": "The top and bottom of the profit chart, and where the next dot goes."}, {"n": "Costume Frame", "k": "helper", "why": "Each vehicle's wheel picture, how fast it is leaving, and where it stops."}, {"n": "Speed", "k": "helper", "why": "Each vehicle's wheel picture, how fast it is leaving, and where it stops."}, {"n": "Stop X", "k": "helper", "why": "Each vehicle's wheel picture, how fast it is leaving, and where it stops."}]}, "realfake": {"t": "Real vs Fake", "rules": [{"n": "Level 1 Time", "v": "12", "why": "Seconds to find the fake in each level."}, {"n": "Level 2 Time", "v": "15", "why": "Seconds to find the fake in each level."}, {"n": "Start Hearts", "v": "3", "why": "Lives at the start, points for a right answer, and seconds the giveaway stays."}, {"n": "Base Points", "v": "10", "why": "Lives at the start, points for a right answer, and seconds the giveaway stays."}, {"n": "Clue Time", "v": "3", "why": "Lives at the start, points for a right answer, and seconds the giveaway stays."}], "vars": [{"n": "Level 1 Time", "k": "rule", "why": "Seconds to find the fake in each level."}, {"n": "Level 2 Time", "k": "rule", "why": "Seconds to find the fake in each level."}, {"n": "Start Hearts", "k": "rule", "why": "Lives at the start, points for a right answer, and seconds the giveaway stays."}, {"n": "Base Points", "k": "rule", "why": "Lives at the start, points for a right answer, and seconds the giveaway stays."}, {"n": "Clue Time", "k": "rule", "why": "Lives at the start, points for a right answer, and seconds the giveaway stays."}, {"n": "Score", "k": "counter", "why": "All your points."}, {"n": "Hearts", "k": "counter", "why": "Lives left."}, {"n": "Round", "k": "counter", "why": "Which round we are on, and how many there are."}, {"n": "Rounds", "k": "counter", "why": "Which round we are on, and how many there are."}, {"n": "Shuffle Pile", "k": "helper", "why": "Used only to shuffle: each number is inserted at a random place in the pile, then copied to Order."}, {"n": "Shuffle Number", "k": "helper", "why": "Used only to shuffle: each number is inserted at a random place in the pile, then copied to Order."}, {"n": "Copy Position", "k": "helper", "why": "Used only to shuffle: each number is inserted at a random place in the pile, then copied to Order."}, {"n": "Product", "k": "memory", "why": "Which product is on the table now (1 to 8)."}, {"n": "Fake Side", "k": "memory", "why": "Which side has the fake: 1 left, 2 right."}, {"n": "Level", "k": "counter", "why": "Level 1 (see the flaw) or Level 2 (read the label)."}, {"n": "Round Time", "k": "memory", "why": "This round's time limit, when it started, and seconds left."}, {"n": "Round Start", "k": "memory", "why": "This round's time limit, when it started, and seconds left."}, {"n": "Time Left", "k": "memory", "why": "This round's time limit, when it started, and seconds left."}, {"n": "Picked", "k": "memory", "why": "Picked = which side you clicked. Accepting = clicks count now. Hover = which product the magnifier is over."}, {"n": "Accepting", "k": "memory", "why": "Picked = which side you clicked. Accepting = clicks count now. Hover = which product the magnifier is over."}, {"n": "Hover", "k": "memory", "why": "Picked = which side you clicked. Accepting = clicks count now. Hover = which product the magnifier is over."}, {"n": "Points", "k": "counter", "why": "Points for this round, shoppers saved, if you won, best score."}, {"n": "Saved", "k": "counter", "why": "Points for this round, shoppers saved, if you won, best score."}, {"n": "Won", "k": "counter", "why": "Points for this round, shoppers saved, if you won, best score."}, {"n": "Best Score", "k": "counter", "why": "Points for this round, shoppers saved, if you won, best score."}, {"n": "Shopper Type", "k": "memory", "why": "Which shopper walks in (the woman a or the man b)."}, {"n": "Shopper Letter", "k": "memory", "why": "Which shopper walks in (the woman a or the man b)."}, {"n": "My Heart", "k": "memory", "why": "Each heart clone remembers its number (1, 2, 3)."}, {"n": "Costume Frame", "k": "helper", "why": "Which walk, run or wheel costume to show."}]}, "jobboard": {"t": "Family Job Board", "rules": [{"n": "Day Length", "v": "60", "why": "How long the day lasts."}, {"n": "Time To Click", "v": "5", "why": "Seconds for a normal chore, seconds for an urgent one, and the % of urgent chores."}, {"n": "Urgent Time", "v": "3.5", "why": "Seconds for a normal chore, seconds for an urgent one, and the % of urgent chores."}, {"n": "Normal Points", "v": "10", "why": "Points for each kind of action."}, {"n": "Urgent Points", "v": "20", "why": "Points for each kind of action."}, {"n": "Wrong Click Penalty", "v": "2", "why": "Points for each kind of action."}, {"n": "Streak Bonus", "v": "5", "why": "Points for each kind of action."}, {"n": "Urgent Chance", "v": "30", "why": "Seconds for a normal chore, seconds for an urgent one, and the % of urgent chores."}, {"n": "Gold Score", "v": "120", "why": "Scores for medals, and a short rest between chores."}, {"n": "Silver Score", "v": "70", "why": "Scores for medals, and a short rest between chores."}, {"n": "Pause", "v": "0.6", "why": "Scores for medals, and a short rest between chores."}], "vars": [{"n": "Day Length", "k": "rule", "why": "How long the day lasts."}, {"n": "Time To Click", "k": "rule", "why": "Seconds for a normal chore, seconds for an urgent one, and the % of urgent chores."}, {"n": "Urgent Time", "k": "rule", "why": "Seconds for a normal chore, seconds for an urgent one, and the % of urgent chores."}, {"n": "Urgent Chance", "k": "rule", "why": "Seconds for a normal chore, seconds for an urgent one, and the % of urgent chores."}, {"n": "Normal Points", "k": "rule", "why": "Points for each kind of action."}, {"n": "Urgent Points", "k": "rule", "why": "Points for each kind of action."}, {"n": "Streak Bonus", "k": "rule", "why": "Points for each kind of action."}, {"n": "Wrong Click Penalty", "k": "rule", "why": "Points for each kind of action."}, {"n": "Gold Score", "k": "rule", "why": "Scores for medals, and a short rest between chores."}, {"n": "Silver Score", "k": "rule", "why": "Scores for medals, and a short rest between chores."}, {"n": "Pause", "k": "rule", "why": "Scores for medals, and a short rest between chores."}, {"n": "Score", "k": "counter", "why": "All your points."}, {"n": "Chore", "k": "memory", "why": "The chore Mum wants now (1–6), and the one before."}, {"n": "Previous Chore", "k": "memory", "why": "The chore Mum wants now (1–6), and the one before."}, {"n": "Urgent", "k": "memory", "why": "Is this chore urgent (1) or normal (0), and how many seconds you have."}, {"n": "Limit", "k": "memory", "why": "Is this chore urgent (1) or normal (0), and how many seconds you have."}, {"n": "Round Open", "k": "memory", "why": "Is Mum still waiting (1), and when she called."}, {"n": "Round Start", "k": "memory", "why": "Is Mum still waiting (1), and when she called."}, {"n": "Working", "k": "switch", "why": "Tayo is busy doing a chore."}, {"n": "Streak", "k": "counter", "why": "Chores in a row, chores done today, and the points for the last one."}, {"n": "Done Count", "k": "counter", "why": "Chores in a row, chores done today, and the points for the last one."}, {"n": "Last Points", "k": "counter", "why": "Chores in a row, chores done today, and the points for the last one."}, {"n": "Time Left", "k": "counter", "why": "Seconds until sunset."}, {"n": "Medal", "k": "message", "why": "Gold, Silver or Bronze, and your best score."}, {"n": "Best Score", "k": "message", "why": "Gold, Silver or Bronze, and your best score."}, {"n": "My Chore", "k": "memory", "why": "Each spot clone's chore number (1–6)."}, {"n": "Target X", "k": "helper", "why": "Where Tayo is walking to, and his walk costume."}, {"n": "Target Y", "k": "helper", "why": "Where Tayo is walking to, and his walk costume."}, {"n": "Costume Frame", "k": "helper", "why": "Where Tayo is walking to, and his walk costume."}]}, "maze": {"t": "Middleman Maze", "rules": [{"n": "Start Price", "v": "10000", "why": "What the farmer is paid for the tomatoes."}, {"n": "Village Buyer Cut", "v": "5000", "why": "What each middleman adds to the price."}, {"n": "Transporter Cut", "v": "7000", "why": "What each middleman adds to the price."}, {"n": "Market Seller Cut", "v": "8000", "why": "What each middleman adds to the price."}, {"n": "Trip Time", "v": "45", "why": "Seconds before the tomatoes rot, and the co-op deal."}, {"n": "Co-op Share", "v": "20000", "why": "Seconds before the tomatoes rot, and the co-op deal."}, {"n": "Co-op Market Price", "v": "25000", "why": "Seconds before the tomatoes rot, and the co-op deal."}], "vars": [{"n": "Start Price", "k": "rule", "why": "What the farmer is paid for the tomatoes."}, {"n": "Village Buyer Cut", "k": "rule", "why": "What each middleman adds to the price."}, {"n": "Transporter Cut", "k": "rule", "why": "What each middleman adds to the price."}, {"n": "Market Seller Cut", "k": "rule", "why": "What each middleman adds to the price."}, {"n": "Trip Time", "k": "rule", "why": "Seconds before the tomatoes rot, and the co-op deal."}, {"n": "Co-op Share", "k": "rule", "why": "Seconds before the tomatoes rot, and the co-op deal."}, {"n": "Co-op Market Price", "k": "rule", "why": "Seconds before the tomatoes rot, and the co-op deal."}, {"n": "Price ₦", "k": "counter", "why": "The market price of the tomatoes now."}, {"n": "Farmer's Share ₦", "k": "memory", "why": "What the farmer gets."}, {"n": "Trip", "k": "counter", "why": "Which trip (1 or 2), and seconds left before rot."}, {"n": "Time Left", "k": "counter", "why": "Which trip (1 or 2), and seconds left before rot."}, {"n": "Row", "k": "memory", "why": "Where the truck is on the map (row and column of the Maze list)."}, {"n": "Col", "k": "memory", "why": "Where the truck is on the map (row and column of the Maze list)."}, {"n": "Row Step", "k": "helper", "why": "Which way you want to go: −1, 0 or 1."}, {"n": "Column Step", "k": "helper", "why": "Which way you want to go: −1, 0 or 1."}, {"n": "Next Row", "k": "helper", "why": "The square you want to move into, and the letter there."}, {"n": "Next Column", "k": "helper", "why": "The square you want to move into, and the letter there."}, {"n": "Next Square", "k": "helper", "why": "The square you want to move into, and the letter there."}, {"n": "Pad Direction", "k": "memory", "why": "Which on-screen arrow was clicked (1 right, 2 left, 3 up, 4 down)."}, {"n": "Moving", "k": "switch", "why": "Moving = you may drive. Arrived = you reached M. Pausing = a middleman is talking, so the clock stops."}, {"n": "Arrived", "k": "switch", "why": "Moving = you may drive. Arrived = you reached M. Pausing = a middleman is talking, so the clock stops."}, {"n": "Pausing", "k": "switch", "why": "Moving = you may drive. Arrived = you reached M. Pausing = a middleman is talking, so the clock stops."}, {"n": "Paid Gate 1", "k": "switch", "why": "Have we already paid at this gate?"}, {"n": "Paid Gate 2", "k": "switch", "why": "Have we already paid at this gate?"}, {"n": "Paid Gate 3", "k": "switch", "why": "Have we already paid at this gate?"}, {"n": "Paid Co-op", "k": "switch", "why": "Have we already paid at this gate?"}, {"n": "Gate", "k": "memory", "why": "Which gate we are at, its cut, and the road type (middleman or coop)."}, {"n": "Last Cut", "k": "memory", "why": "Which gate we are at, its cut, and the road type (middleman or coop)."}, {"n": "Route", "k": "memory", "why": "Which gate we are at, its cut, and the road type (middleman or coop)."}, {"n": "Seg Farmer", "k": "memory", "why": "How the price is split, and the farmer's percentage."}, {"n": "Seg Buyer", "k": "memory", "why": "How the price is split, and the farmer's percentage."}, {"n": "Seg Transport", "k": "memory", "why": "How the price is split, and the farmer's percentage."}, {"n": "Seg Seller", "k": "memory", "why": "How the price is split, and the farmer's percentage."}, {"n": "Seg Coop", "k": "memory", "why": "How the price is split, and the farmer's percentage."}, {"n": "Farmer %", "k": "memory", "why": "How the price is split, and the farmer's percentage."}, {"n": "Trip 1 Price", "k": "memory", "why": "The results of both trips, and the tallest bar."}, {"n": "Trip 1 Share", "k": "memory", "why": "The results of both trips, and the tallest bar."}, {"n": "Trip 2 Price", "k": "memory", "why": "The results of both trips, and the tallest bar."}, {"n": "Trip 2 Share", "k": "memory", "why": "The results of both trips, and the tallest bar."}, {"n": "Tallest Price", "k": "memory", "why": "The results of both trips, and the tallest bar."}, {"n": "Target X", "k": "helper", "why": "Where the truck is gliding to."}, {"n": "Target Y", "k": "helper", "why": "Where the truck is gliding to."}]}, "naira": {"t": "Shrinking Naira", "rules": [{"n": "Money ₦", "v": "5000", "why": "What Mum has for market EVERY month."}, {"n": "Rice Start ₦", "v": "1800", "why": "Each food's price in Month 1."}, {"n": "Rice Rise %", "v": "20", "why": "How much each food's price rises every month."}, {"n": "Bread Start ₦", "v": "1200", "why": "Each food's price in Month 1."}, {"n": "Bread Rise %", "v": "10", "why": "How much each food's price rises every month."}, {"n": "Eggs Start ₦", "v": "900", "why": "Each food's price in Month 1."}, {"n": "Eggs Rise %", "v": "15", "why": "How much each food's price rises every month."}, {"n": "Tomatoes Start ₦", "v": "600", "why": "Each food's price in Month 1."}, {"n": "Tomatoes Rise %", "v": "25", "why": "How much each food's price rises every month."}, {"n": "Palm oil Start ₦", "v": "500", "why": "Each food's price in Month 1."}, {"n": "Palm oil Rise %", "v": "12", "why": "How much each food's price rises every month."}], "vars": [{"n": "Money ₦", "k": "rule", "why": "What Mum has for market EVERY month."}, {"n": "Rice Start ₦", "k": "rule", "why": "Each food's price in Month 1."}, {"n": "Bread Start ₦", "k": "rule", "why": "Each food's price in Month 1."}, {"n": "Eggs Start ₦", "k": "rule", "why": "Each food's price in Month 1."}, {"n": "Tomatoes Start ₦", "k": "rule", "why": "Each food's price in Month 1."}, {"n": "Palm oil Start ₦", "k": "rule", "why": "Each food's price in Month 1."}, {"n": "Rice Rise %", "k": "rule", "why": "How much each food's price rises every month."}, {"n": "Bread Rise %", "k": "rule", "why": "How much each food's price rises every month."}, {"n": "Eggs Rise %", "k": "rule", "why": "How much each food's price rises every month."}, {"n": "Tomatoes Rise %", "k": "rule", "why": "How much each food's price rises every month."}, {"n": "Palm oil Rise %", "k": "rule", "why": "How much each food's price rises every month."}, {"n": "Month", "k": "counter", "why": "Which month we are in."}, {"n": "Basket Total ₦", "k": "counter", "why": "What the foods we still buy cost now."}, {"n": "Full Cost ₦", "k": "memory", "why": "The cost of ALL 5 foods, the January cost, and how much prices rose."}, {"n": "Month 1 Cost", "k": "memory", "why": "The cost of ALL 5 foods, the January cost, and how much prices rose."}, {"n": "Inflation %", "k": "memory", "why": "The cost of ALL 5 foods, the January cost, and how much prices rose."}, {"n": "Climb Step", "k": "helper", "why": "Which of the 12 climb steps we are on, and the price before and after."}, {"n": "Old Price", "k": "helper", "why": "Which of the 12 climb steps we are on, and the price before and after."}, {"n": "New Price", "k": "helper", "why": "Which of the 12 climb steps we are on, and the price before and after."}, {"n": "Food Number", "k": "counter", "why": "Which food (1–5) a loop is working on."}, {"n": "Waiting Remove", "k": "memory", "why": "Waiting for you to tap a food, and which food was dropped."}, {"n": "Last Removed", "k": "memory", "why": "Waiting for you to tap a food, and which food was dropped."}, {"n": "Frozen", "k": "switch", "why": "The game is frozen for the signers."}, {"n": "Ready", "k": "memory", "why": "Ready = 1 shows NEXT MONTH, 2 shows SEE RESULTS. Next Clicked = the button was clicked."}, {"n": "Next Clicked", "k": "memory", "why": "Ready = 1 shows NEXT MONTH, 2 shows SEE RESULTS. Next Clicked = the button was clicked."}, {"n": "Change ₦", "k": "memory", "why": "Mum's change, foods still bought, tallest bar, and one bar's height."}, {"n": "Foods Left", "k": "memory", "why": "Mum's change, foods still bought, tallest bar, and one bar's height."}, {"n": "Chart Max", "k": "memory", "why": "Mum's change, foods still bought, tallest bar, and one bar's height."}, {"n": "Bar Height", "k": "memory", "why": "Mum's change, foods still bought, tallest bar, and one bar's height."}, {"n": "My Food", "k": "memory", "why": "Each food clone's number, and its job: 1 table, 2 Month 1 panel, 3 Month 6 panel."}, {"n": "Copy Role", "k": "memory", "why": "Each food clone's number, and its job: 1 table, 2 Month 1 panel, 3 Month 6 panel."}, {"n": "Arrow Slot", "k": "memory", "why": "Each UP arrow clone's food number."}]}, "barn": {"t": "The Empty Barn", "rules": [{"n": "Game Length", "v": "60", "why": "Seconds until sunset, animals to keep to win, vaccines in the vet box."}, {"n": "Sick Gap", "v": "4", "why": "Seconds between new sick animals, early-sign time, time before a very sick animal is lost, and pen rest time."}, {"n": "Early Window", "v": "4", "why": "Seconds between new sick animals, early-sign time, time before a very sick animal is lost, and pen rest time."}, {"n": "Spread Time", "v": "5", "why": "Seconds between new sick animals, early-sign time, time before a very sick animal is lost, and pen rest time."}, {"n": "Early Points", "v": "20", "why": "Points for early and late catches, and the penalty for tapping a healthy animal."}, {"n": "Sick Points", "v": "10", "why": "Points for early and late catches, and the penalty for tapping a healthy animal."}, {"n": "Wrong Penalty", "v": "5", "why": "Points for early and late catches, and the penalty for tapping a healthy animal."}, {"n": "Recovery Time", "v": "8", "why": "Seconds between new sick animals, early-sign time, time before a very sick animal is lost, and pen rest time."}, {"n": "Win Animals", "v": "6", "why": "Seconds until sunset, animals to keep to win, vaccines in the vet box."}, {"n": "Vaccines", "v": "3", "why": "Seconds until sunset, animals to keep to win, vaccines in the vet box."}], "vars": [{"n": "Game Length", "k": "rule", "why": "Seconds until sunset, animals to keep to win, vaccines in the vet box."}, {"n": "Win Animals", "k": "rule", "why": "Seconds until sunset, animals to keep to win, vaccines in the vet box."}, {"n": "Vaccines", "k": "rule", "why": "Seconds until sunset, animals to keep to win, vaccines in the vet box."}, {"n": "Sick Gap", "k": "rule", "why": "Seconds between new sick animals, early-sign time, time before a very sick animal is lost, and pen rest time."}, {"n": "Early Window", "k": "rule", "why": "Seconds between new sick animals, early-sign time, time before a very sick animal is lost, and pen rest time."}, {"n": "Spread Time", "k": "rule", "why": "Seconds between new sick animals, early-sign time, time before a very sick animal is lost, and pen rest time."}, {"n": "Recovery Time", "k": "rule", "why": "Seconds between new sick animals, early-sign time, time before a very sick animal is lost, and pen rest time."}, {"n": "Early Points", "k": "rule", "why": "Points for early and late catches, and the penalty for tapping a healthy animal."}, {"n": "Sick Points", "k": "rule", "why": "Points for early and late catches, and the penalty for tapping a healthy animal."}, {"n": "Wrong Penalty", "k": "rule", "why": "Points for early and late catches, and the penalty for tapping a healthy animal."}, {"n": "Score", "k": "counter", "why": "Points, animals still alive, seconds to sunset, and the bar size."}, {"n": "Animals Left", "k": "counter", "why": "Points, animals still alive, seconds to sunset, and the bar size."}, {"n": "Time Left", "k": "counter", "why": "Points, animals still alive, seconds to sunset, and the bar size."}, {"n": "Time Level", "k": "counter", "why": "Points, animals still alive, seconds to sunset, and the bar size."}, {"n": "Next Sick At", "k": "memory", "why": "When the next animal gets sick, the gap now, and if the speed-up happened."}, {"n": "Current Gap", "k": "memory", "why": "When the next animal gets sick, the gap now, and if the speed-up happened."}, {"n": "Faster Started", "k": "memory", "why": "When the next animal gets sick, the gap now, and if the speed-up happened."}, {"n": "Picked Stall", "k": "helper", "why": "Which stall to make sick (and how many tries), and which stall the checking loop is on."}, {"n": "Tries", "k": "helper", "why": "Which stall to make sick (and how many tries), and which stall the checking loop is on."}, {"n": "Stall Being Checked", "k": "helper", "why": "Which stall to make sick (and how many tries), and which stall the checking loop is on."}, {"n": "Last Lost", "k": "memory", "why": "The stall that was just lost."}, {"n": "Early Catches", "k": "counter", "why": "Results, and the end: strong, weak or empty."}, {"n": "Late Catches", "k": "counter", "why": "Results, and the end: strong, weak or empty."}, {"n": "Lost Count", "k": "counter", "why": "Results, and the end: strong, weak or empty."}, {"n": "Outcome", "k": "counter", "why": "Results, and the end: strong, weak or empty."}, {"n": "Carry Stall", "k": "memory", "why": "The stall the farmhand is working on."}, {"n": "Vaccines Left", "k": "memory", "why": "Vaccines still in the box, if the next tap vaccinates, and which stall got one."}, {"n": "Vaccine Mode", "k": "memory", "why": "Vaccines still in the box, if the next tap vaccinates, and which stall got one."}, {"n": "Vaccine Stall", "k": "memory", "why": "Vaccines still in the box, if the next tap vaccinates, and which stall got one."}, {"n": "Animation Frame", "k": "counter", "why": "Which of 2 frames all animals show now."}, {"n": "Popup Name", "k": "memory", "why": "Which popup to show (early, late, wrong, vax, novax) and where."}, {"n": "Popup Stall", "k": "memory", "why": "Which popup to show (early, late, wrong, vax, novax) and where."}, {"n": "My Spot", "k": "memory", "why": "Each animal clone's stall, animal type, where it is (stall, pen, carried) and if it is fading away."}, {"n": "My Type", "k": "memory", "why": "Each animal clone's stall, animal type, where it is (stall, pen, carried) and if it is fading away."}, {"n": "Where Am I", "k": "memory", "why": "Each animal clone's stall, animal type, where it is (stall, pen, carried) and if it is fading away."}, {"n": "Gone", "k": "memory", "why": "Each animal clone's stall, animal type, where it is (stall, pen, carried) and if it is fading away."}, {"n": "Step X", "k": "helper", "why": "Where the farmhand is walking and how far each step is."}, {"n": "Step Y", "k": "helper", "why": "Where the farmhand is walking and how far each step is."}, {"n": "Target X", "k": "helper", "why": "Where the farmhand is walking and how far each step is."}, {"n": "Target Y", "k": "helper", "why": "Where the farmhand is walking and how far each step is."}, {"n": "Steps", "k": "helper", "why": "Where the farmhand is walking and how far each step is."}, {"n": "My Ring", "k": "memory", "why": "Each ring clone's stall."}]}, "wise": {"t": "Naira Wise", "rules": [{"n": "Pocket Money", "v": "1000", "why": "Money each week, naira per tap, number of weeks, seconds per week."}, {"n": "Note Value", "v": "100", "why": "Money each week, naira per tap, number of weeks, seconds per week."}, {"n": "Weeks", "v": "3", "why": "Money each week, naira per tap, number of weeks, seconds per week."}, {"n": "Week Time", "v": "12", "why": "Money each week, naira per tap, number of weeks, seconds per week."}, {"n": "Goal Price", "v": "1500", "why": "The storybook price, and when and how much the emergency costs."}, {"n": "Emergency Week", "v": "2", "why": "The storybook price, and when and how much the emergency costs."}, {"n": "Emergency Cost", "v": "300", "why": "The storybook price, and when and how much the emergency costs."}, {"n": "Good Save %", "v": "20", "why": "The lines for WISE and BIG SPENDER endings."}, {"n": "Big Spend %", "v": "80", "why": "The lines for WISE and BIG SPENDER endings."}], "vars": [{"n": "Pocket Money", "k": "rule", "why": "Money each week, naira per tap, number of weeks, seconds per week."}, {"n": "Note Value", "k": "rule", "why": "Money each week, naira per tap, number of weeks, seconds per week."}, {"n": "Weeks", "k": "rule", "why": "Money each week, naira per tap, number of weeks, seconds per week."}, {"n": "Week Time", "k": "rule", "why": "Money each week, naira per tap, number of weeks, seconds per week."}, {"n": "Goal Price", "k": "rule", "why": "The storybook price, and when and how much the emergency costs."}, {"n": "Emergency Week", "k": "rule", "why": "The storybook price, and when and how much the emergency costs."}, {"n": "Emergency Cost", "k": "rule", "why": "The storybook price, and when and how much the emergency costs."}, {"n": "Good Save %", "k": "rule", "why": "The lines for WISE and BIG SPENDER endings."}, {"n": "Big Spend %", "k": "rule", "why": "The lines for WISE and BIG SPENDER endings."}, {"n": "Week", "k": "counter", "why": "Which week we are in."}, {"n": "Pocket ₦", "k": "counter", "why": "Money still in the wallet this week."}, {"n": "Save ₦", "k": "counter", "why": "Money in each jar this week."}, {"n": "Spend ₦", "k": "counter", "why": "Money in each jar this week."}, {"n": "Give ₦", "k": "counter", "why": "Money in each jar this week."}, {"n": "Kolo ₦", "k": "counter", "why": "All savings in the kolo."}, {"n": "Save Total", "k": "counter", "why": "Totals for the whole 3 weeks, and money that was never planned."}, {"n": "Spend Total", "k": "counter", "why": "Totals for the whole 3 weeks, and money that was never planned."}, {"n": "Give Total", "k": "counter", "why": "Totals for the whole 3 weeks, and money that was never planned."}, {"n": "Wasted", "k": "counter", "why": "Totals for the whole 3 weeks, and money that was never planned."}, {"n": "Time Left", "k": "counter", "why": "Seconds left this week, the bar size, and if the clock is stopped (emergency)."}, {"n": "Time Level", "k": "counter", "why": "Seconds left this week, the bar size, and if the clock is stopped (emergency)."}, {"n": "Paused", "k": "counter", "why": "Seconds left this week, the bar size, and if the clock is stopped (emergency)."}, {"n": "Emergency Done", "k": "memory", "why": "If the emergency happened, and money borrowed for it."}, {"n": "Debt", "k": "memory", "why": "If the emergency happened, and money borrowed for it."}, {"n": "Hawker Done", "k": "switch", "why": "So the hawker walks past only once a week."}, {"n": "Treats", "k": "counter", "why": "How many treats the SPEND jar buys (₦200 each, up to 5)."}, {"n": "Goal Level", "k": "memory", "why": "How full the goal bar is (0–10), and money still missing."}, {"n": "Short ₦", "k": "memory", "why": "How full the goal bar is (0–10), and money still missing."}, {"n": "Save %", "k": "memory", "why": "The final maths and the ending name."}, {"n": "Spend %", "k": "memory", "why": "The final maths and the ending name."}, {"n": "Weekly Save", "k": "memory", "why": "The final maths and the ending name."}, {"n": "Year Savings", "k": "memory", "why": "The final maths and the ending name."}, {"n": "Ending", "k": "memory", "why": "The final maths and the ending name."}, {"n": "Jar X", "k": "memory", "why": "Where the tapped jar is, and each flying note's own target."}, {"n": "My Target X", "k": "memory", "why": "Where the tapped jar is, and each flying note's own target."}, {"n": "Coins To Add", "k": "helper", "why": "Savings being moved into the kolo, which week the chart is drawing, and one bar part's height."}, {"n": "Week Number", "k": "helper", "why": "Savings being moved into the kolo, which week the chart is drawing, and one bar part's height."}, {"n": "Bar Height", "k": "helper", "why": "Savings being moved into the kolo, which week the chart is drawing, and one bar part's height."}, {"n": "My Treat", "k": "memory", "why": "Each treat clone's picture number."}]}, "rot": {"t": "Race Against Rot", "rules": [{"n": "Harvests", "v": "3", "why": "How many trips to market."}, {"n": "Near Time", "v": "12", "why": "Trip seconds and fresh-load prices for each market."}, {"n": "Far Time", "v": "22", "why": "Trip seconds and fresh-load prices for each market."}, {"n": "Near Price", "v": "15000", "why": "Trip seconds and fresh-load prices for each market."}, {"n": "Far Price", "v": "25000", "why": "Trip seconds and fresh-load prices for each market."}, {"n": "Open Air Rot", "v": "5", "why": "Freshness lost per second for each storage, and the dried price %."}, {"n": "Cooler Rot", "v": "1.5", "why": "Freshness lost per second for each storage, and the dried price %."}, {"n": "Drying Rot", "v": "0.5", "why": "Freshness lost per second for each storage, and the dried price %."}, {"n": "Dried Value %", "v": "60", "why": "Freshness lost per second for each storage, and the dried price %."}, {"n": "Rain Damage", "v": "30", "why": "Freshness lost in the rain, seconds to cover, seconds stuck in traffic."}, {"n": "Rain Window", "v": "3", "why": "Freshness lost in the rain, seconds to cover, seconds stuck in traffic."}, {"n": "Jam Time", "v": "3", "why": "Freshness lost in the rain, seconds to cover, seconds stuck in traffic."}], "vars": [{"n": "Harvests", "k": "rule", "why": "How many trips to market."}, {"n": "Near Time", "k": "rule", "why": "Trip seconds and fresh-load prices for each market."}, {"n": "Far Time", "k": "rule", "why": "Trip seconds and fresh-load prices for each market."}, {"n": "Near Price", "k": "rule", "why": "Trip seconds and fresh-load prices for each market."}, {"n": "Far Price", "k": "rule", "why": "Trip seconds and fresh-load prices for each market."}, {"n": "Open Air Rot", "k": "rule", "why": "Freshness lost per second for each storage, and the dried price %."}, {"n": "Cooler Rot", "k": "rule", "why": "Freshness lost per second for each storage, and the dried price %."}, {"n": "Drying Rot", "k": "rule", "why": "Freshness lost per second for each storage, and the dried price %."}, {"n": "Dried Value %", "k": "rule", "why": "Freshness lost per second for each storage, and the dried price %."}, {"n": "Rain Damage", "k": "rule", "why": "Freshness lost in the rain, seconds to cover, seconds stuck in traffic."}, {"n": "Rain Window", "k": "rule", "why": "Freshness lost in the rain, seconds to cover, seconds stuck in traffic."}, {"n": "Jam Time", "k": "rule", "why": "Freshness lost in the rain, seconds to cover, seconds stuck in traffic."}, {"n": "Harvest", "k": "counter", "why": "Which harvest we are on."}, {"n": "Storage", "k": "memory", "why": "Your choices: storage 1–3 and market 1–2."}, {"n": "Market", "k": "memory", "why": "Your choices: storage 1–3 and market 1–2."}, {"n": "Fresh", "k": "counter", "why": "How fresh the tomatoes are."}, {"n": "Freshness %", "k": "counter", "why": "How fresh the tomatoes are."}, {"n": "Fresh Level", "k": "counter", "why": "How fresh the tomatoes are."}, {"n": "Rate", "k": "memory", "why": "This trip's rot speed, length and fresh price."}, {"n": "Journey", "k": "memory", "why": "This trip's rot speed, length and fresh price."}, {"n": "Price", "k": "memory", "why": "This trip's rot speed, length and fresh price."}, {"n": "Elapsed", "k": "counter", "why": "Seconds driven so far, and the little map position."}, {"n": "Trip Level", "k": "counter", "why": "Seconds driven so far, and the little map position."}, {"n": "Rain At", "k": "memory", "why": "When rain comes, if it happened, if we are in it, and if the load is covered."}, {"n": "Rain Done", "k": "memory", "why": "When rain comes, if it happened, if we are in it, and if the load is covered."}, {"n": "Rain Open", "k": "memory", "why": "When rain comes, if it happened, if we are in it, and if the load is covered."}, {"n": "Covered", "k": "memory", "why": "When rain comes, if it happened, if we are in it, and if the load is covered."}, {"n": "Jam At", "k": "memory", "why": "When the go-slow starts (far market only), and if it happened."}, {"n": "Jam Done", "k": "memory", "why": "When the go-slow starts (far market only), and if it happened."}, {"n": "Speed", "k": "memory", "why": "How fast the scenery moves (7 normal, 2 rain, 0 jam), and if we are on the road."}, {"n": "Moving", "k": "memory", "why": "How fast the scenery moves (7 normal, 2 rain, 0 jam), and if we are on the road."}, {"n": "Load On", "k": "memory", "why": "If the load should sit on the truck, and which rot picture to show (1 fresh, 2 ageing, 3 rotten)."}, {"n": "Crop Stage", "k": "memory", "why": "If the load should sit on the truck, and which rot picture to show (1 fresh, 2 ageing, 3 rotten)."}, {"n": "Earned", "k": "counter", "why": "Money from this load, all harvests, and the best one."}, {"n": "Total ₦", "k": "counter", "why": "Money from this load, all harvests, and the best one."}, {"n": "Best", "k": "counter", "why": "Money from this load, all harvests, and the best one."}, {"n": "Chart Max", "k": "helper", "why": "The tallest bar, a bar's height, and a loop counter."}, {"n": "Bar Height", "k": "helper", "why": "The tallest bar, a bar's height, and a loop counter."}, {"n": "Loop Count", "k": "helper", "why": "The tallest bar, a bar's height, and a loop counter."}, {"n": "Choice", "k": "memory", "why": "Each card clone's number and whether it is a storage or market card."}, {"n": "Card Kind", "k": "memory", "why": "Each card clone's number and whether it is a storage or market card."}, {"n": "Lane", "k": "memory", "why": "Where a scenery clone goes, which jam car, which chart bar."}, {"n": "Car Slot", "k": "memory", "why": "Where a scenery clone goes, which jam car, which chart bar."}, {"n": "My Bar", "k": "memory", "why": "Where a scenery clone goes, which jam car, which chart bar."}]}, "owambe": {"t": "The Great Owambe Budget", "rules": [{"n": "Budget ₦", "v": "200000", "why": "The party money and what each thing costs."}, {"n": "Jollof ₦", "v": "80000", "why": "The party money and what each thing costs."}, {"n": "Canopy ₦", "v": "50000", "why": "The party money and what each thing costs."}, {"n": "DJ ₦", "v": "40000", "why": "The party money and what each thing costs."}, {"n": "Aso-ebi ₦", "v": "45000", "why": "The party money and what each thing costs."}, {"n": "Decoration ₦", "v": "25000", "why": "The party money and what each thing costs."}, {"n": "Small chops ₦", "v": "30000", "why": "The party money and what each thing costs."}, {"n": "Loan ₦", "v": "50000", "why": "What BORROW gives, what you pay back, and how many loans."}, {"n": "Repay ₦", "v": "60000", "why": "What BORROW gives, what you pay back, and how many loans."}, {"n": "Max Loans", "v": "2", "why": "What BORROW gives, what you pay back, and how many loans."}, {"n": "Aunty Extra ₦", "v": "30000", "why": "The surprise cost, bonus, penalties and rating lines."}, {"n": "Buffer Joy", "v": "10", "why": "The surprise cost, bonus, penalties and rating lines."}, {"n": "No Food Penalty", "v": "20", "why": "The surprise cost, bonus, penalties and rating lines."}, {"n": "Send Home Penalty", "v": "20", "why": "The surprise cost, bonus, penalties and rating lines."}, {"n": "Year Score", "v": "75", "why": "The surprise cost, bonus, penalties and rating lines."}, {"n": "Sweet Score", "v": "50", "why": "The surprise cost, bonus, penalties and rating lines."}], "vars": [{"n": "Budget ₦", "k": "rule", "why": "The party money and what each thing costs."}, {"n": "Jollof ₦", "k": "rule", "why": "The party money and what each thing costs."}, {"n": "Canopy ₦", "k": "rule", "why": "The party money and what each thing costs."}, {"n": "DJ ₦", "k": "rule", "why": "The party money and what each thing costs."}, {"n": "Aso-ebi ₦", "k": "rule", "why": "The party money and what each thing costs."}, {"n": "Decoration ₦", "k": "rule", "why": "The party money and what each thing costs."}, {"n": "Small chops ₦", "k": "rule", "why": "The party money and what each thing costs."}, {"n": "Loan ₦", "k": "rule", "why": "What BORROW gives, what you pay back, and how many loans."}, {"n": "Repay ₦", "k": "rule", "why": "What BORROW gives, what you pay back, and how many loans."}, {"n": "Max Loans", "k": "rule", "why": "What BORROW gives, what you pay back, and how many loans."}, {"n": "Aunty Extra ₦", "k": "rule", "why": "The surprise cost, bonus, penalties and rating lines."}, {"n": "Buffer Joy", "k": "rule", "why": "The surprise cost, bonus, penalties and rating lines."}, {"n": "No Food Penalty", "k": "rule", "why": "The surprise cost, bonus, penalties and rating lines."}, {"n": "Send Home Penalty", "k": "rule", "why": "The surprise cost, bonus, penalties and rating lines."}, {"n": "Year Score", "k": "rule", "why": "The surprise cost, bonus, penalties and rating lines."}, {"n": "Sweet Score", "k": "rule", "why": "The surprise cost, bonus, penalties and rating lines."}, {"n": "Budget Left ₦", "k": "counter", "why": "Money not yet spent."}, {"n": "Debt ₦", "k": "counter", "why": "What you must pay back, and how many loans you took."}, {"n": "Loans", "k": "counter", "why": "What you must pay back, and how many loans you took."}, {"n": "Joy", "k": "counter", "why": "How happy the party is, and the bar size."}, {"n": "Joy Level", "k": "counter", "why": "How happy the party is, and the bar size."}, {"n": "Mode", "k": "message", "why": "What stage we are in: plan, party, aunty choice, dance."}, {"n": "Done Clicked", "k": "memory", "why": "PARTY TIME clicked, your answer to Aunty (1 borrow, 2 send home), party running, and the result."}, {"n": "Aunty Choice", "k": "memory", "why": "PARTY TIME clicked, your answer to Aunty (1 borrow, 2 send home), party running, and the result."}, {"n": "Party On", "k": "memory", "why": "PARTY TIME clicked, your answer to Aunty (1 borrow, 2 send home), party running, and the result."}, {"n": "Rating", "k": "memory", "why": "PARTY TIME clicked, your answer to Aunty (1 borrow, 2 send home), party running, and the result."}, {"n": "Item Number", "k": "counter", "why": "Which of the 6 items a loop is checking."}, {"n": "Guests To Drop", "k": "memory", "why": "How many guests the vehicle just brought."}, {"n": "My Item", "k": "memory", "why": "Each clone's own number and target spot."}, {"n": "My Prop", "k": "memory", "why": "Each clone's own number and target spot."}, {"n": "My Mark", "k": "memory", "why": "Each clone's own number and target spot."}, {"n": "My Guest", "k": "memory", "why": "Each clone's own number and target spot."}, {"n": "My Spot X", "k": "memory", "why": "Each clone's own number and target spot."}, {"n": "My Spot Y", "k": "memory", "why": "Each clone's own number and target spot."}]}}</script>
+<script>
+(function(){
+"use strict";
+const KB = JSON.parse(document.getElementById('kb').textContent);
+const fmt = v => { const n = Number(String(v).replace(/,/g,'')); if (isNaN(n) || String(v).trim() === '') return String(v); return Math.abs(n) >= 1000 ? n.toLocaleString('en-US') : String(n); };
+
+// one "hero" box per game: a real story of how its value changes while you play
+const HERO = {
+  honest:  {n:'Trust', why:'How much customers trust Mama T\'s shop (0 to 100).', steps:[
+    ['set','Start Trust','50','Green flag: trust starts at the Start Trust rule'], ['chg','8','','Customer 1: honest sale'], ['chg','8','','Customer 2: honest sale'],
+    ['chg','-25','','Customer 3: CHEAT! Less rice than asked'], ['chg','8','','Customer 4: honest sale'], ['chg','-30','','Customer 5: the inspector fines you']]},
+  realfake:{n:'Hearts', why:'How many lives you have left.', steps:[
+    ['set','Start Hearts','3','PLAY: hearts start at the Start Hearts rule'], ['chg','-1','','Round 2: you clicked the real one'], ['chg','-1','','Round 6: too slow!']]},
+  jobboard:{n:'Score', why:'All your points for the day.', steps:[
+    ['set','','0','PLAY: a new day, score 0'], ['chg','10','','A normal chore done'], ['chg','20','','An URGENT chore done'], ['chg','-2','','Wrong spot clicked'], ['chg','10','','A normal chore done'], ['chg','5','','Streak bonus: 3 in a row']]},
+  maze:    {n:'Price ₦', why:'What the tomatoes cost at the market right now.', steps:[
+    ['set','Start Price','10000','At the farm: the farmer\'s price'], ['chg','5000','','Gate 1: the village buyer adds his cut'], ['chg','7000','','Gate 2: the transporter adds his cut'], ['chg','8000','','Gate 3: the market seller adds his cut']]},
+  naira:   {n:'Month', why:'Which month Mum is shopping in.', steps:[
+    ['set','','1','PLAY: January'], ['chg','1','','NEXT MONTH'], ['chg','1','','NEXT MONTH'], ['chg','1','','NEXT MONTH'], ['chg','1','','NEXT MONTH'], ['chg','1','','NEXT MONTH']]},
+  barn:    {n:'Animals Left', why:'How many animals are still alive in the barn.', steps:[
+    ['set','','9','PLAY: 9 healthy animals'], ['chg','-1','','A very sick animal was not caught in time'], ['chg','-1','','The sickness spread to a neighbour']]},
+  wise:    {n:'Pocket ₦', why:'Money still in Ada\'s pocket this week.', steps:[
+    ['set','Pocket Money','1000','Mum gives the pocket money'], ['chg','-100','','Tap the SAVE jar'], ['chg','-100','','Tap the SAVE jar'], ['chg','-100','','Tap the SPEND jar'], ['chg','-100','','Tap the GIVE jar']]},
+  rot:     {n:'Fresh', why:'How fresh the tomatoes are (100 = just picked).', steps:[
+    ['set','','100','Harvest: fresh from the farm'], ['chg','-5','','1 second on the road in an open basket'], ['chg','-5','','Another second'], ['chg','-30','','RAIN, and you did not cover the load'], ['chg','-5','','Another second']]},
+  owambe:  {n:'Budget Left ₦', why:'Party money not spent yet.', steps:[
+    ['set','Budget ₦','200000','PLAY: all the budget'], ['chg','-80000','','Pick Jollof'], ['chg','-50000','','Pick the Canopy'], ['chg','50000','','BORROW (but now you owe ₦60,000)'], ['chg','-40000','','Pick the DJ']]},
+};
+
+let game = 'honest', tab = 0;
+try { const g = localStorage.getItem('cwl-game'); if (g && KB[g]) game = g; } catch(e){}
+try { if (localStorage.getItem('cwl-big') === '1'){ document.body.classList.add('big'); document.getElementById('big').setAttribute('aria-pressed','true'); } } catch(e){}
+
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function shuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
+function setBlock(name, value, opts){ // a "set [name] to (value)" chip; returns {node, nameEl, valEl}
+  opts = opts || {};
+  const b = el('span','blk data'); const n = el('span','slot name', name); const v = el('span','slot val', value);
+  b.append(document.createTextNode(opts.verb || 'set'), n, document.createTextNode(opts.mid || 'to'), v); return {node:b, nameEl:n, valEl:v};
+}
+
+const sel = document.getElementById('game');
+const order = ['honest','realfake','jobboard','maze','naira','barn','wise','rot','owambe'];
+let lastSchool = '';
+const groups = {};
+order.forEach(k => { const s = {honest:'Methodist',realfake:'Methodist',jobboard:'Methodist',maze:'Unity',naira:'Unity',barn:'Unity',wise:'Yewa',rot:'Yewa',owambe:'Yewa'}[k];
+  if (!groups[s]){ groups[s] = el('optgroup'); groups[s].label = s; sel.append(groups[s]); }
+  const o = el('option', null, KB[k].t); o.value = k; groups[s].append(o); });
+sel.value = game;
+sel.addEventListener('change', () => { game = sel.value; try { localStorage.setItem('cwl-game', game); } catch(e){} draw(); });
+document.getElementById('big').addEventListener('click', e => { const on = document.body.classList.toggle('big'); e.currentTarget.setAttribute('aria-pressed', String(on)); try { localStorage.setItem('cwl-big', on ? '1' : '0'); } catch(err){} });
+
+const TABS = [['1','The box', boxStation], ['2','Name or value?', spotStation], ['3','Say it right', sayStation], ['4','Mix-up pairs', pairsStation]];
+function draw(){
+  const t = document.getElementById('tabs'); t.innerHTML = '';
+  TABS.forEach((x, i) => { const b = el('button','tab'); b.type = 'button'; b.setAttribute('role','tab'); b.setAttribute('aria-selected', String(i === tab));
+    b.append(el('b', null, x[0]), document.createTextNode(x[1])); b.addEventListener('click', () => { tab = i; draw(); }); t.append(b); });
+  const p = document.getElementById('panel'); p.innerHTML = ''; p.append(TABS[tab][2]());
+}
+
+// ---------------- Station 1: the box ----------------
+function boxStation(){
+  const H = HERO[game];
+  const wrap = el('div','stack');
+  const rule = el('div','rule'); rule.innerHTML = 'The <span class="n">NAME</span> is the label on the box. It never changes. The <span class="v">VALUE</span> is the card inside. It changes.';
+  wrap.append(rule);
+  const lab = el('div','lab');
+  // left: the box
+  const left = el('div','stack');
+  const stage = el('div','boxstage');
+  const box = el('div','box'); const back = el('div','back'); const front = el('div','front'); const label = el('div','label', H.n);
+  front.append(label); const card = el('div','valcard', '?'); box.append(back, card, front);
+  const tN = el('span','tagN','Name: never changes'); const tV = el('span','tagV','Value: changes');
+  stage.append(box, tN, tV); left.append(stage);
+  const mon = el('div','row'); const m = el('span','monitor'); const mb = el('b', null, '?'); m.append(document.createTextNode(H.n), mb);
+  mon.append(el('span','small', 'On the Scratch stage it looks like this:'), m); left.append(mon);
+  const say = el('p','say'); say.innerHTML = 'Press the first step.'; left.append(say);
+  const hist = el('div','stack'); hist.append(el('h3', null, 'Every value this box has held')); const hrow = el('div','history'); hist.append(hrow);
+  const count = el('p','small', ''); hist.append(count); left.append(hist);
+  // right: the steps
+  const right = el('div','stack');
+  right.append(el('h2', null, 'Play the story'), el('p','lede', H.why + ' Press the steps in order and watch: only the card changes.'));
+  const list = el('div','steps'); right.append(list);
+  let value = null, idx = 0; const values = [];
+  const btns = H.steps.map((s, i) => {
+    const b = el('button','stepbtn'); b.type = 'button';
+    const blk = s[0] === 'set' ? setBlock(H.n, s[1] || fmt(s[2])) : setBlock(H.n, fmt(s[1]), {verb:'change', mid:'by'});
+    const txt = el('span'); txt.append(el('small', null, 'Step ' + (i + 1) + ' · ' + s[3]), blk.node);
+    b.append(txt); b.disabled = i !== 0;
+    b.addEventListener('click', () => run(i));
+    list.append(b); return b;
+  });
+  function run(i){
+    const s = H.steps[i]; const old = value;
+    value = s[0] === 'set' ? Number(s[2]) : (Number(old) + Number(s[1]));
+    values.push(value);
+    card.classList.add('out');
+    setTimeout(() => { card.textContent = fmt(value); card.classList.remove('out'); card.classList.add('in'); requestAnimationFrame(() => requestAnimationFrame(() => card.classList.remove('in'))); }, 300);
+    label.classList.remove('pulse'); void label.offsetWidth; label.classList.add('pulse');
+    mb.textContent = fmt(value);
+    if (s[0] === 'set') say.innerHTML = 'Put <b>' + fmt(value) + '</b> into the <span class="n">' + H.n + '</span> box.' + (s[1] ? ' (' + fmt(s[2]) + ' came from the <span class="n">' + s[1] + '</span> box.)' : '');
+    else say.innerHTML = 'Take the card out, ' + (Number(s[1]) < 0 ? 'take away ' + fmt(-Number(s[1])) : 'add ' + fmt(s[1])) + ', put the new card in. The <span class="n">' + H.n + '</span> box now holds <b>' + fmt(value) + '</b>.';
+    hrow.innerHTML = ''; values.forEach((v, k) => { const sp = el('span', k === values.length - 1 ? 'now' : '', fmt(v)); hrow.append(sp); });
+    count.textContent = 'ONE variable (' + H.n + '), ' + values.length + (values.length === 1 ? ' value so far.' : ' values so far. Same box, different cards.');
+    btns.forEach((b, k) => b.disabled = k !== i + 1);
+    if (i === H.steps.length - 1){ const again = el('button','btn primary','Start again'); again.type = 'button'; again.addEventListener('click', draw); list.append(again); }
+  }
+  lab.append(left, right); wrap.append(lab);
+
+  // same value, different names  +  copying
+  const g2 = el('div','grid2');
+  const r = KB[game].rules.filter(x => /^\d+(\.\d+)?$/.test(x.v));
+  const twins = findTwins(r);
+  const c1 = el('div','card stack'); c1.append(el('h3', null, 'Same value, different variables'));
+  const mini = el('div','mini');
+  if (twins){ twins.forEach(x => mini.append(miniBox(x.n, fmt(x.v)))); c1.append(mini, el('p', null, 'Both boxes hold ' + fmt(twins[0].v) + ', but they are two DIFFERENT variables with two different jobs. The value does not tell you which box it is. The name does.')); }
+  else { const a = r[0], b2 = r[1]; mini.append(miniBox(a.n, fmt(a.v)), miniBox(b2.n, fmt(b2.v))); c1.append(mini, el('p', null, 'Two different boxes, two different names. Each name tells you what the number is FOR.')); }
+  const c2 = el('div','card stack'); c2.append(el('h3', null, '"set A to B" copies the card'));
+  const cp = COPY[game]; const mini2 = el('div','mini'); mini2.append(miniBox(cp[1], cp[2]), miniBox(cp[0], cp[2]));
+  const sb = setBlock(cp[0], cp[1]); sb.valEl.classList.add('name'); sb.valEl.style.background = 'var(--var)';
+  c2.append(sb.node, mini2, el('p', null, 'The value inside ' + cp[1] + ' is COPIED into ' + cp[0] + '. ' + cp[1] + ' keeps its own card. After this, they are still two boxes.'));
+  g2.append(c1, c2); wrap.append(g2);
+  return wrap;
+}
+function miniBox(n, v){ const b = el('div','minibox'); b.append(el('div','vc', v), el('div','label', n)); return b; }
+function findTwins(rules){
+  const by = {}; rules.forEach(x => { (by[x.v] = by[x.v] || []).push(x); });
+  const k = Object.keys(by).find(v => by[v].length > 1); return k ? by[k].slice(0, 2) : null;
+}
+const COPY = {honest:['Trust','Start Trust','50'], realfake:['Hearts','Start Hearts','3'], jobboard:['Limit','Urgent Time','3.5'], maze:['Price ₦','Start Price','10,000'],
+  naira:['Month 1 Cost','Full Cost ₦','5,000'], barn:['Vaccines Left','Vaccines','3'], wise:['Pocket ₦','Pocket Money','1,000'], rot:['Rate','Open Air Rot','5'], owambe:['Budget Left ₦','Budget ₦','200,000']};
+
+// ---------------- Station 2: name or value? ----------------
+function makeQuestions(){
+  const R = KB[game].rules.filter(x => x.v !== '');
+  const H = HERO[game];
+  const qs = [];
+  shuffle(R).slice(0, 4).forEach(x => qs.push({t:'block', n:x.n, v:fmt(x.v), ask: Math.random() < .5 ? 'name' : 'value'}));
+  shuffle(R).slice(0, 3).forEach(x => qs.push({t:'sentence', n:x.n, v:fmt(x.v), ask: Math.random() < .5 ? 'name' : 'value'}));
+  qs.push({t:'monitor', n:H.n, v:fmt(H.steps[0][2]), ask:'value'});
+  qs.push({t:'monitor', n:H.n, v:fmt(H.steps[0][2]), ask:'name'});
+  const x = pick(R); qs.push({t:'which', n:x.n, v:fmt(x.v)});
+  return shuffle(qs).slice(0, 10);
+}
+function spotStation(){
+  const Q = {qs: makeQuestions(), i:0, score:0, marks:[]};
+  const wrap = el('div','stack');
+  const rule = el('div','rule'); rule.innerHTML = 'Find the <span class="n">NAME</span> (the label on the box) or the <span class="v">VALUE</span> (the card inside).';
+  wrap.append(rule);
+  const card = el('div','card'); wrap.append(card);
+  function show(){
+    card.innerHTML = '';
+    if (Q.i >= Q.qs.length){ return finish(); }
+    const q = Q.qs[Q.i]; const box = el('div','qwrap');
+    const dots = el('div','dots'); Q.qs.forEach((_, k) => dots.append(el('i', k < Q.i ? (Q.marks[k] ? 'r' : 'w') : k === Q.i ? 'c' : '')));
+    box.append(dots);
+    const fb = el('p','feedback'); fb.hidden = true;
+    const next = el('button','btn primary', Q.i + 1 < Q.qs.length ? 'Next' : 'See my score'); next.type = 'button'; next.hidden = true;
+    next.addEventListener('click', () => { Q.i++; show(); });
+    const answer = (ok, msg) => { Q.marks.push(ok); if (ok) Q.score++; fb.hidden = false; fb.className = 'feedback ' + (ok ? 'ok' : 'no'); fb.textContent = msg; next.hidden = false; };
+    if (q.t === 'block' || q.t === 'monitor'){
+      box.append(el('p','qprompt', q.ask === 'name' ? 'Tap the NAME of the variable.' : 'Tap the VALUE.'));
+      let parts;
+      if (q.t === 'block'){ const b = setBlock(q.n, q.v); parts = {name:b.nameEl, value:b.valEl}; box.append(b.node); }
+      else { const m = el('span','monitor'); m.style.fontSize = '1.2em'; const nn = el('span','slot', q.n); nn.style.color = '#575e75'; const vv = el('b', null, q.v); m.append(nn, vv); parts = {name:nn, value:vv}; box.append(el('p','small','This is a variable showing on the Scratch stage:'), m); }
+      let done = false;
+      Object.entries(parts).forEach(([k, node]) => { node.classList.add('tap'); node.addEventListener('click', () => {
+        if (done) return; done = true; const ok = k === q.ask; node.classList.add(ok ? 'right' : 'wrong'); if (!ok) parts[q.ask].classList.add('right');
+        answer(ok, ok ? (q.ask === 'name' ? 'Yes! "' + q.n + '" is the name: the label on the box.' : 'Yes! ' + q.v + ' is the value: the card inside.')
+                      : (q.ask === 'name' ? 'Not quite. ' + q.v + ' is the VALUE (the card). The NAME is "' + q.n + '".' : 'Not quite. "' + q.n + '" is the NAME (the label). The VALUE is ' + q.v + '.'));
+      }); });
+    } else if (q.t === 'sentence'){
+      box.append(el('p','qprompt', q.ask === 'name' ? 'Tap the word that is the VARIABLE (the box).' : 'Tap the VALUE (what is inside).'));
+      const s = el('div','sentence'); const words = ['The', q.n, 'box', 'holds', q.v, 'now.']; let done = false; const nodes = [];
+      words.forEach((w, k) => { const sp = el('span','word', w); nodes.push(sp); sp.addEventListener('click', () => {
+        if (done) return; done = true; const target = q.ask === 'name' ? 1 : 4; const ok = k === target;
+        sp.classList.add(ok ? 'right' : 'wrong'); if (!ok) nodes[target].classList.add('right');
+        answer(ok, ok ? 'Correct.' : 'The ' + (q.ask === 'name' ? 'variable is "' + q.n + '"' : 'value is ' + q.v) + '.');
+      }); s.append(sp); });
+      box.append(s);
+    } else {
+      box.append(el('p','qprompt', 'In "set [' + q.n + '] to (' + q.v + ')", which sentence is true?'));
+      const opts = shuffle([[true, q.n + ' is the variable. ' + q.v + ' is its value right now.'], [false, q.v + ' is the variable.'], [false, q.n + ' and ' + q.v + ' are both variables.']]);
+      const ch = el('div','choices'); let done = false;
+      opts.forEach(([ok, txt]) => { const b = el('button','choice', txt); b.type = 'button'; b.addEventListener('click', () => {
+        if (done) return; done = true; b.classList.add(ok ? 'right' : 'wrong'); [...ch.children].forEach(c => c.disabled = true);
+        if (!ok) [...ch.children].find(c => c.textContent.startsWith(q.n + ' is the variable')).classList.add('right');
+        answer(ok, ok ? 'Yes. The name is the variable; the number is only what it holds right now.' : 'Not quite. The variable is the NAMED BOX. The number is just the card inside.');
+      }); ch.append(b); }); box.append(ch);
+    }
+    box.append(fb, next); card.append(box);
+  }
+  function finish(){
+    const b = el('div','qwrap');
+    b.append(el('p','big-score', Q.score + ' / ' + Q.qs.length), el('p','qprompt', Q.score >= 9 ? 'Excellent. You can tell a name from a value.' : Q.score >= 6 ? 'Good. Play again to make it automatic.' : 'Go back to station 1 and play the box story once more.'));
+    const again = el('button','btn primary','Play again with new questions'); again.type = 'button'; again.addEventListener('click', () => { Q.qs = makeQuestions(); Q.i = 0; Q.score = 0; Q.marks = []; show(); });
+    b.append(again); card.append(b);
+  }
+  show();
+  return wrap;
+}
+
+// ---------------- Station 3: say it right ----------------
+function sayStation(){
+  const H = HERO[game]; const R = KB[game].rules.filter(x => x.v !== '');
+  const r1 = R[0], r2 = R[Math.min(1, R.length - 1)];
+  const v0 = fmt(H.steps[0][2]);
+  const pairs = shuffle([
+    ['"' + H.n + ' is ' + v0 + '."', 'The ' + H.n + ' box holds ' + v0 + ' right now.', 'Say "holds" or "right now". The value can change; the box stays.'],
+    [v0 + ' is the variable.', H.n + ' is the variable. ' + v0 + ' is its value.', 'The variable is always the NAME.'],
+    ['We changed the variable to ' + fmt(r1.v) + '.', 'We put ' + fmt(r1.v) + ' into the ' + r1.n + ' box.', 'We never change the box itself. We change what is inside.'],
+    ['The variable went up.', 'The value inside ' + H.n + ' went up.', 'Boxes do not grow. Values do.'],
+    [r2.n + ' is a number.', r2.n + ' is a variable that holds a number (' + fmt(r2.v) + ').', 'A variable is a box. A number is something you can put in it.'],
+    ['"set" makes a new variable.', '"set" puts a new value into a box that already exists.', 'We make the box once (Make a Variable). After that we only fill it.'],
+  ]);
+  const wrap = el('div','stack');
+  const rule = el('div','rule'); rule.innerHTML = 'Talk like this: "The <span class="n">Trust</span> box holds <span class="v">58</span> right now."';
+  wrap.append(rule, el('p','lede', 'Choose the better sentence. These are the words you want the speakers to use in front of the judges.'));
+  pairs.forEach((p, i) => {
+    const c = el('div','card stack'); c.append(el('p','small', 'Sentence ' + (i + 1)));
+    const ch = el('div','choices'); const fb = el('p','feedback ok'); fb.hidden = true; let done = false;
+    shuffle([[false, p[0]], [true, p[1]]]).forEach(([ok, txt]) => { const b = el('button','choice', txt); b.type = 'button'; b.addEventListener('click', () => {
+      if (done) return; done = true; b.classList.add(ok ? 'right' : 'wrong'); [...ch.children].forEach(x => x.disabled = true);
+      if (!ok) [...ch.children].find(x => x.textContent === p[1]).classList.add('right');
+      fb.hidden = false; fb.className = 'feedback ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Yes. ' : 'The better one is in green. ') + p[2];
+    }); ch.append(b); });
+    c.append(ch, fb); wrap.append(c);
+  });
+  return wrap;
+}
+
+// ---------------- Station 4: mix-up pairs ----------------
+function pairsStation(){
+  const H = HERO[game]; const G = KB[game];
+  const wrap = el('div','stack');
+  const rule = el('div','rule'); rule.textContent = 'Most mix-ups come in pairs. Learn the two words TOGETHER, with one question that tells them apart.';
+  wrap.append(rule);
+  const grid = el('div','pairs');
+  const P = [
+    {a:['Variable','A named box that remembers something.', 'In our game: ' + H.n], b:['Value','What is inside the box right now.', 'Right now: ' + fmt(H.steps[0][2])],
+     test:'Ask: "Can it change while we play?" The VALUE can. The variable (the name) never does.', demo:demoBox},
+    {a:['Sprite','An actor in the game. It has its own scripts.', 'Example: the Title, the Play Button'], b:['Costume','One picture the sprite can wear.', 'A sprite can have many costumes'],
+     test:'Ask: "Does it have code?" A sprite has scripts. A costume is only a picture.'},
+    {a:['Stage','The big screen behind everything. It has scripts too: the director.', 'It sets the rules and shouts "show title"'], b:['Backdrop','A picture the Stage wears.', 'Example: morning, night, help'],
+     test:'Same idea as sprite and costume: the Stage is the actor, the backdrop is its picture.'},
+    {a:['Block','One piece of code.', 'Example: hide'], b:['Script','A stack of blocks that starts with a hat block.', 'Example: when green flag clicked → hide'],
+     test:'Ask: "Does it start with a hat?" A script does. A block is just one piece.'},
+    {a:['Event','Something that HAPPENS and starts a script.', 'Green flag, a click, a key, a message'], b:['Broadcast','A message a sprite SHOUTS to start other scripts.', 'Example: broadcast [show title]'],
+     test:'A broadcast is an event WE make. Who shouts it? Look for "Who shouts it" in the Code Story.', demo:demoBroadcast},
+    {a:['Loop','Do the same steps again and again.', 'repeat, repeat until, forever'], b:['Condition','A yes/no question that decides.', 'if <Trust < 30> then'],
+     test:'Ask: "Does it repeat, or does it decide?" A loop repeats. A condition decides.', demo:demoIf},
+    {a:['List','A row of numbered boxes, all under one name.', 'Example: Arrivals, Health'], b:['Item','ONE box in the list, found by its number.', 'item 3 of Arrivals'],
+     test:'Ask: "One box or many?" Item = one. List = many, in order.', demo:demoList},
+    {a:['Clone','A copy of a sprite made while the game runs. It has its own "for this sprite only" boxes.', 'Hearts, chore spots, animals, foods'], b:['Costume','A picture. Making a clone does NOT make a new costume.', ''],
+     test:'Ask: "Can I click it and does it remember its own number?" Then it is a clone.', demo:demoClone},
+    {a:['Rule number','A variable we set once at the green flag. It never changes while playing.', G.rules[0] ? G.rules[0].n + ' = ' + fmt(G.rules[0].v) : ''], b:['Counter','A variable that changes while we play.', H.n],
+     test:'Ask: "Does it change during play?" No = rule number. Yes = counter.'},
+  ];
+  P.forEach(p => {
+    const c = el('article','pair'); const ph = el('div','ph');
+    const sa = el('div','side'); sa.append(el('h3','c1', p.a[0]), el('p', null, p.a[1]), el('p','eg', p.a[2]));
+    const sb = el('div','side'); sb.append(el('h3','c2', p.b[0]), el('p', null, p.b[1]), el('p','eg', p.b[2]));
+    ph.append(sa, el('span','vs','vs'), sb); c.append(ph);
+    const t = el('div','test'); t.append(el('b', null, 'How to tell them apart'), el('p', null, p.test)); c.append(t);
+    if (p.demo){ const d = el('div','demo'); d.append(el('b', null, 'Try it')); p.demo(d); c.append(d); }
+    grid.append(c);
+  });
+  wrap.append(grid);
+  return wrap;
+}
+function demoBox(d){
+  const H = HERO[game]; let v = Number(H.steps[0][2]);
+  const m = el('span','monitor'); const b = el('b', null, fmt(v)); m.append(document.createTextNode(H.n), b);
+  const r = el('div','row'); const up = el('button','btn','+ change by 1'); up.type = 'button'; const dn = el('button','btn','− change by 1'); dn.type = 'button';
+  up.addEventListener('click', () => { v++; b.textContent = fmt(v); }); dn.addEventListener('click', () => { v--; b.textContent = fmt(v); });
+  r.append(m, up, dn); d.append(r, el('p','small','Click and watch: the name stays "' + H.n + '". Only the value changes.'));
+}
+function demoBroadcast(d){
+  const names = ['Title','Play Button','Help Button','Car','Help Card'];
+  const listens = {Title:true,'Play Button':true,'Help Button':true};
+  const a = el('div','actors'); const nodes = names.map(n => { const x = el('div','actor dim', n); a.append(x); return x; });
+  const b = el('button','btn primary','Stage: broadcast [show title]'); b.type = 'button';
+  b.addEventListener('click', () => { nodes.forEach((x, i) => { const on = listens[names[i]]; x.classList.toggle('dim', !on); x.classList.toggle('hop', on); setTimeout(() => x.classList.remove('hop'), 350); }); });
+  d.append(b, a, el('p','small','Only sprites with "when I receive [show title]" that say "show" come out. The others stay hidden.'));
+}
+function demoIf(d){
+  const H = HERO.honest; const g = el('div','gate'); const s = el('input'); s.type = 'range'; s.min = 0; s.max = 100; s.value = 50; s.id = 'trust-demo';
+  const lab = el('label', null, 'Trust: '); lab.htmlFor = 'trust-demo'; const val = el('b', null, '50'); const light = el('span','light');
+  const upd = () => { val.textContent = s.value; const yes = Number(s.value) < 30; light.className = 'light ' + (yes ? 'no' : 'yes'); light.textContent = yes ? 'IF Trust < 30 → YES: the customer walks away' : 'IF Trust < 30 → NO: serve the customer'; };
+  s.addEventListener('input', upd); upd(); lab.append(val); g.append(lab, s, light);
+  d.append(el('span','blk control','if < (Trust) < 30 > then'), g, el('p','small','The condition asks a yes/no question about the VALUE inside a box.'));
+}
+function demoList(d){
+  const items = ['walk','okada','car','keke','inspector','car','walk','keke'];
+  const row = el('div','listrow'); const out = el('p','say','Tap a number.');
+  items.forEach((it, i) => { const li = el('div','li'); li.append(el('span', null, String(i + 1)), el('b', null, it));
+    li.addEventListener('click', () => { [...row.children].forEach(x => x.classList.remove('on')); li.classList.add('on'); out.innerHTML = 'item <b>' + (i + 1) + '</b> of Arrivals = <b>' + it + '</b>'; }); row.append(li); });
+  d.append(el('p','small','The Arrivals list from Honest Scale: 8 boxes in a row, one name.'), row, out);
+}
+function demoClone(d){
+  const a = el('div','actors'); let n = 0;
+  const b = el('button','btn primary','create clone of [myself]'); b.type = 'button';
+  b.addEventListener('click', () => { if (n >= 6) return; n++; const x = el('div','actor', 'My Chore\n' + n); x.style.whiteSpace = 'pre-line'; x.style.background = 'var(--custom)'; a.append(x); });
+  const r = el('button','btn','Start again'); r.type = 'button'; r.addEventListener('click', () => { a.innerHTML = ''; n = 0; });
+  d.append(el('div','row'), a); d.firstChild && d.insertBefore(b, a); d.insertBefore(r, a);
+  d.append(el('p','small','Each copy keeps its OWN "My Chore" box with its own value: 1, 2, 3 ... That is how 6 chore spots come from 1 sprite.'));
+}
+
+draw();
+})();
+</script>
+
+<a href="/" id="bb-home" aria-label="Back to the home page" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;background:#0f3d5e;color:#fff;font:600 13px/1 system-ui,sans-serif;padding:9px 12px;border-radius:99px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:.88">&#8962; Home</a></body></html>

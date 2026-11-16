@@ -1,0 +1,229 @@
+<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ByteBusters Trainer Notes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Lexend:wght@300;400;500;600&display=swap">
+<style>
+/* Layout: phone-first cheat sheet. Sticky game picker; one section per game; same layout every time so the eye knows where to look. */
+:root{--bg:#F5F7F2;--surface:#fff;--line:#D7DFD2;--fg:#15241B;--muted:#56655B;--brand:#0B7A4A;--sun:#F2B705;--sun-soft:#FFF5D6;
+--ev:#E6A800;--ev-ink:#2A1F00;--key:#E8F3EC;--warn:#FDECEC;--warn-ink:#B3261E;--ok:#E3EEFB;--ok-ink:#1D4F91;
+--yewa:#1D67C4;--meth:#6447D1;--unity:#D9650B;--display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;--body:"Lexend","Segoe UI",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1712;--surface:#17221B;--line:#2C3B31;--fg:#E8EFE9;--muted:#A3B3A8;--brand:#3FBF83;--sun:#F5C53A;--sun-soft:#2B2610;
+--key:#15301F;--warn:#3A1A1A;--warn-ink:#FF9A90;--ok:#16283F;--ok-ink:#9CC4FF;--yewa:#6AA8FF;--meth:#A592FF;--unity:#FF9142;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F1712;--surface:#17221B;--line:#2C3B31;--fg:#E8EFE9;--muted:#A3B3A8;--brand:#3FBF83;--sun:#F5C53A;--sun-soft:#2B2610;
+--key:#15301F;--warn:#3A1A1A;--warn-ink:#FF9A90;--ok:#16283F;--ok-ink:#9CC4FF;--yewa:#6AA8FF;--meth:#A592FF;--unity:#FF9142;color-scheme:dark}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:960px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2{font-family:var(--display);margin:0;line-height:1.15;text-wrap:balance}
+.top{padding-block:28px 12px}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--brand)}
+.top h1{font-size:clamp(30px,6vw,44px);font-weight:800;margin-top:8px}
+.top p{color:var(--muted);margin-top:8px;max-width:38em}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:6px;overflow-x:auto;padding-block:10px;scrollbar-width:none}
+nav a{flex:none;text-decoration:none;font-size:14px;font-weight:500;padding:7px 12px;border-radius:999px;border:1px solid var(--line);color:var(--fg);box-shadow:inset 3px 0 0 var(--c)}
+nav a.yewa{--c:var(--yewa)}nav a.meth{--c:var(--meth)}nav a.unity{--c:var(--unity)}
+.rules{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));padding-block:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;min-width:0}
+.card h3{font-family:var(--display);font-size:20px;margin:0 0 8px}
+.card ol,.card ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.say{background:var(--sun-soft);border-radius:8px;padding:2px 6px;font-weight:500}
+section.game{scroll-margin-top:64px;padding-block:26px;border-top:1px solid var(--line);display:grid;gap:12px}
+.game header{display:grid;gap:6px}
+.sch{justify-self:start;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#fff;padding:3px 10px;border-radius:999px}
+.sch.yewa{background:var(--yewa)}.sch.meth{background:var(--meth)}.sch.unity{background:var(--unity)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sch{color:#0F1712}}
+:root[data-theme="dark"] .sch{color:#0F1712}
+.game h2{font-size:clamp(26px,5vw,34px);font-weight:800}
+.one{font-size:18px;font-weight:300}
+.hook{background:var(--sun-soft);border-radius:14px;padding:14px 16px}
+.hook b,.cell b{display:block;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px}
+.hook p{font-family:var(--display);font-size:20px;font-weight:600;line-height:1.3;margin:0}
+.grid{display:grid;gap:12px;grid-template-columns:1fr}
+@media (min-width:760px){.grid{grid-template-columns:.8fr 1fr 1.2fr}.grid.two{grid-template-columns:1fr 1fr}}
+.cell{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.cell p{margin:0}
+.cell.key{background:var(--key);border-color:transparent}
+.cell.warn{background:var(--warn);border-color:transparent}.cell.warn b{color:var(--warn-ink)}
+.cell.ok{background:var(--ok);border-color:transparent}.cell.ok b{color:var(--ok-ink)}
+.box p{font-size:18px}.small{font-size:14px!important;color:var(--muted);margin-top:6px!important}
+.var{background:#F07F12;color:#fff;border-radius:6px;padding:2px 8px;font-weight:600}
+.num{font-family:var(--display);font-weight:800;font-size:20px;font-variant-numeric:tabular-nums}
+.bx{margin:0 0 4px!important;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.order{margin:0;padding-left:22px;display:grid;gap:3px;font-size:15px}
+.chain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;align-items:flex-start;gap:0}
+.chain li{position:relative;padding:3px 0 3px 18px;font-size:14px}
+.chain li::before{content:"";position:absolute;left:5px;top:0;bottom:0;width:2px;background:var(--line)}
+.chain li:first-child::before{top:50%}.chain li:last-child::before{bottom:50%}
+.msg{display:inline-block;background:var(--ev);color:var(--ev-ink);border-radius:6px;padding:3px 9px;font-weight:500}
+.chain .act{font-weight:700;font-size:12px;letter-spacing:.08em;color:var(--brand)}
+.chain .act::after{content:"";position:absolute;left:1px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:var(--brand)}
+.chain .more{color:var(--muted);font-style:italic}
+footer{padding-block:28px 40px;color:var(--muted);font-size:14px}
+</style>
+<div class="wrap top">
+  <div class="eyebrow">For the trainer · tonight's call</div>
+  <h1>Trainer notes: 9 build-along games</h1>
+  <p>One screen per game. Read the yellow question to open, follow the build order, explain the green box, avoid the red box, and run the blue test at the end.</p>
+</div>
+<nav aria-label="Games"><div class="wrap"><a href="#nw" class="yewa">Naira Wise</a><a href="#rr" class="yewa">Race Against Rot</a><a href="#ow" class="yewa">Owambe Budget</a><a href="#rvf" class="meth">Real vs Fake</a><a href="#hs" class="meth">Honest Scale (simple)</a><a href="#fjb" class="meth">Family Job Board</a><a href="#mm" class="unity">Middleman Maze</a><a href="#sn" class="unity">Shrinking Naira</a><a href="#eb" class="unity">The Empty Barn</a></div></nav>
+<div class="wrap">
+  <div class="rules">
+    <div class="card"><h3>Say this in every game</h3><ol>
+      <li><b>Upload and rename</b> every sprite and backdrop first, and say each one's job.</li>
+      <li><b>Green flag:</b> every sprite hides.</li>
+      <li><b>The Stage sets the rules</b> (the boxes), then shouts "show title screen".</li>
+      <li><b>Only the Title and PLAY listen.</b> PLAY shouts the first message, and they both hide.</li>
+      <li><b>Each message calls the next part</b> of the game. Test after every step.</li></ol></div>
+    <div class="card"><h3>If nothing happens</h3><ol>
+      <li><b>Message name different?</b> Pick it from the dropdown, never type it twice.</li>
+      <li><b>Sprite missing?</b> Check its "when I receive" script and its x and y.</li>
+      <li><b>Game stops halfway?</b> The teller forgot to broadcast the next message.</li>
+      <li><b>Number wrong?</b> Check the Stage "set" block and the minus sign.</li></ol></div>
+    <div class="card"><h3>Words that keep you calm</h3><ul>
+      <li><span class="say">"Good. Let us find out why."</span> when something breaks.</li>
+      <li><span class="say">"Which sprite should talk next?"</span> before every broadcast.</li>
+      <li><span class="say">"Read me the next block."</span> to hand them control.</li>
+      <li><span class="say">"Click the green flag. Let us test."</span> after every sprite.</li></ul></div>
+  </div>
+  
+<section class="game" id="nw">
+  <header><span class="sch yewa">Yewa</span><h2>Naira Wise</h2><p class="one">Ada gets ₦1,000 a week for 3 weeks. 10 seconds to give each ₦200 note a job: save, spend or give. Week 2: the sandal breaks.</p></header>
+  <div class="hook"><b>Open the call with</b><p>"What did you do with the last money someone gave you? Is any of it still left?"</p></div>
+  <div class="grid">
+    <div class="cell box"><b>The boxes (the Stage sets them)</b><p class="bx"><span class="var">Week</span> <span class="num">0</span></p><p class="bx"><span class="var">Time</span> <span class="num">10</span></p><p class="bx"><span class="var">Pocket ₦</span> <span class="num">0</span></p><p class="bx"><span class="var">Kolo ₦</span> <span class="num">0</span></p><p class="bx"><span class="var">Goal ₦</span> <span class="num">1000</span></p><p class="small">Goal ₦ never changes. Only the Save Jar adds to Kolo ₦. The cobbler takes ₦400 from the kolo (or the pocket, if the kolo is short).</p></div>
+    <div class="cell"><b>Upload in this order</b><ol class="order"><li>Title</li><li>Play Button</li><li>Week Banner</li><li>Mum</li><li>Ada</li><li>Emergency</li><li>Cobbler</li><li>Time Bar</li><li>Save Jar</li><li>Spend Jar</li><li>Give Jar</li><li>Leak Note</li><li>Storybook</li></ol></div>
+    <div class="cell"><b>The message chain</b><ol class="chain"><li class="act">PLAY</li><li><span class="msg">new week starts</span></li><li><span class="msg">mum gives pocket money</span></li><li><span class="msg">ada checks the week</span></li><li><span class="msg">week 2 only: sandal breaks</span></li><li><span class="msg">jars and 10 second clock start</span></li><li class="act">TAP</li><li><span class="msg">time is up</span></li><li><span class="msg">leftover money disappears (if money had no job)</span></li><li><span class="msg">check if 3 weeks are done</span></li><li><span class="msg">new week starts (again) or ada checks her kolo</span></li><li><span class="msg">buy the storybook (if Kolo reached Goal)</span></li></ol></div>
+  </div>
+  <div class="grid two">
+    <div class="cell key"><b>The one thing to explain</b><p>The Week Banner shouts &quot;new week starts&quot; again until Week is 3. That is a loop made of messages, with no repeat block.</p></div>
+    <div class="cell warn"><b>Watch out</b><p>Each jar checks &quot;is Pocket ₦ &gt; 0?&quot; before it takes a note. Without that check, Ada can spend money she does not have.</p></div>
+  </div>
+  <div class="cell ok"><b>Test before you say "done"</b><p>Save 3 notes every week: Kolo ₦ reaches 1,400, Ada buys the book, 400 is left. Save nothing in week 1: in week 2 only ₦600 is left to share.</p></div>
+  <div class="cell"><b>The build-along steps (on the website)</b><ol class="order"><li>Upload and rename</li><li>Green flag: every sprite hides</li><li>The Stage sets the rules and shouts</li><li>Only the Title and PLAY listen</li><li>A new week starts</li><li>Mum gives the pocket money</li><li>Ada checks the week</li><li>Week 2: the sandal breaks</li><li>The 10-second clock and the three jars</li><li>Time is up: does any money have no job?</li><li>Another week, or the end?</li><li>The end: can Ada buy the storybook?</li></ol></div>
+</section>
+<section class="game" id="rr">
+  <header><span class="sch yewa">Yewa</span><h2>Race Against Rot</h2><p class="one">100 tomatoes and an 8-second trip. Choose open air, clay pot or sun-drying. The buyer pays only for fresh tomatoes.</p></header>
+  <div class="hook"><b>Open the call with</b><p>"In tomato season, why do we still see so many rotten tomatoes in the market?"</p></div>
+  <div class="grid">
+    <div class="cell box"><b>The boxes (the Stage sets them)</b><p class="bx"><span class="var">Time</span> <span class="num">8</span></p><p class="bx"><span class="var">Tomatoes</span> <span class="num">100</span></p><p class="bx"><span class="var">Rot</span> <span class="num">0</span></p><p class="bx"><span class="var">Price ₦</span> <span class="num">0</span></p><p class="bx"><span class="var">Money ₦</span> <span class="num">0</span></p><p class="small">A card puts its own numbers in Rot and Price ₦. The Trip Map takes away Rot tomatoes every second. The Buyer adds Price ₦ to Money ₦ once for each fresh tomato.</p></div>
+    <div class="cell"><b>Upload in this order</b><ol class="order"><li>Title</li><li>Play Button</li><li>Farmer</li><li>Open Air Card</li><li>Clay Pot Card</li><li>Sun-Dry Card</li><li>Truck</li><li>Trip Map</li><li>Buyer</li></ol></div>
+    <div class="cell"><b>The message chain</b><ol class="chain"><li class="act">PLAY</li><li><span class="msg">farmer explains</span></li><li><span class="msg">show storage cards</span></li><li class="act">TAP</li><li><span class="msg">drive to market</span></li><li><span class="msg">buyer pays</span></li><li><span class="msg">farmer checks the money</span></li></ol></div>
+  </div>
+  <div class="grid two">
+    <div class="cell key"><b>The one thing to explain</b><p>A repeat inside a repeat: the big repeat counts 8 seconds, the small one takes away Rot tomatoes each second.</p></div>
+    <div class="cell warn"><b>Watch out</b><p>Each card checks &quot;is Rot = 0?&quot; first, so only one card can be chosen. Rot must start at 0 on the Stage.</p></div>
+  </div>
+  <div class="cell ok"><b>Test before you say "done"</b><p>Open air: 36 tomatoes, Money ₦ 3600. Clay pot: 76, 7600 (best). Sun-dry: 92, but ₦50 each: 4600.</p></div>
+  <div class="cell"><b>The build-along steps (on the website)</b><ol class="order"><li>Upload and rename</li><li>Green flag: every sprite hides</li><li>The Stage sets the rules and shouts</li><li>Only the Title and PLAY listen</li><li>The farmer explains</li><li>The three storage cards</li><li>The drive: 8 seconds of rot</li><li>The buyer pays</li><li>The end: the farmer checks the money</li></ol></div>
+</section>
+<section class="game" id="ow">
+  <header><span class="sch yewa">Yewa</span><h2>The Great Owambe Budget</h2><p class="one">₦200,000 and 30 seconds to plan the party. Click cards to buy. Borrow ₦50,000 once, but pay back ₦60,000 on Monday.</p></header>
+  <div class="hook"><b>Open the call with</b><p>"Who has been to an owambe? What do you think costs the most?"</p></div>
+  <div class="grid">
+    <div class="cell box"><b>The boxes (the Stage sets them)</b><p class="bx"><span class="var">Time</span> <span class="num">30</span></p><p class="bx"><span class="var">Budget ₦</span> <span class="num">200000</span></p><p class="bx"><span class="var">Joy</span> <span class="num">0</span></p><p class="bx"><span class="var">Debt ₦</span> <span class="num">0</span></p><p class="small">Each card checks &quot;is Budget ₦ &lt; my price?&quot; before it buys. BORROW adds 50,000 to Budget ₦ and 60,000 to Debt ₦, only once.</p></div>
+    <div class="cell"><b>Upload in this order</b><ol class="order"><li>Title</li><li>Play Button</li><li>Host</li><li>Jollof Card</li><li>Canopy Card</li><li>DJ Card</li><li>Aso-ebi Card</li><li>Decoration Card</li><li>Small chops Card</li><li>Borrow Button</li><li>Lender</li><li>Party Time Button</li><li>Caption</li></ol></div>
+    <div class="cell"><b>The message chain</b><ol class="chain"><li class="act">PLAY</li><li><span class="msg">host explains</span></li><li><span class="msg">start planning</span></li><li><span class="msg">TAP cards</span></li><li><span class="msg">too expensive / lender gives loan (side jobs)</span></li><li><span class="msg">party starts</span></li><li><span class="msg">check for debt</span></li><li><span class="msg">monday comes (only if there is debt)</span></li></ol></div>
+  </div>
+  <div class="grid two">
+    <div class="cell key"><b>The one thing to explain</b><p>The Party Time Button is also the 30-second clock. Clicking it sets Time to 0, so the clock stops early.</p></div>
+    <div class="cell warn"><b>Watch out</b><p>Prices are typed as plain numbers with no commas: 80000, not 80,000.</p></div>
+  </div>
+  <div class="cell ok"><b>Test before you say "done"</b><p>Jollof + Canopy + DJ + Small chops, no borrowing: exactly ₦200,000, &quot;Sweet party&quot;. Borrow and overspend: on Monday &quot;You still owe me. Wahala!&quot;</p></div>
+  <div class="cell"><b>The build-along steps (on the website)</b><ol class="order"><li>Upload and rename</li><li>Green flag: every sprite hides</li><li>The Stage sets the rules and shouts</li><li>Only the Title and PLAY listen</li><li>The host explains</li><li>The six cards</li><li>Borrowing, and the lender</li><li>The 30-second clock</li><li>The party</li><li>Sweet party, or debt party?</li><li>Monday comes</li></ol></div>
+</section>
+<section class="game" id="rvf">
+  <header><span class="sch meth">Methodist</span><h2>Real vs Fake</h2><p class="one">Two products. Click the one you think is fake. The fake then comes back and tells you how to spot it. 4 rounds.</p></header>
+  <div class="hook"><b>Open the call with</b><p>"Have you ever bought something that turned out to be fake? How did you know?"</p></div>
+  <div class="grid">
+    <div class="cell box"><b>The box (the Stage sets them)</b><p class="bx"><span class="var">Score</span> <span class="num">0</span></p><p class="small">Only the fake product has &quot;change Score by 1&quot;.</p></div>
+    <div class="cell"><b>Upload in this order</b><ol class="order"><li>Title</li><li>Play Button</li><li>Tick</li><li>Cross</li><li>Oga Sharp</li><li>Real Tomato Paste</li><li>Fake Tomato Paste</li><li>Tomato Paste Fake Talks</li><li>Real Rice</li><li>Fake Rice</li><li>Rice Fake Talks</li><li>Real Milk</li><li>Fake Milk</li><li>Milk Fake Talks</li><li>Real Noodles</li><li>Fake Noodles</li><li>Noodles Fake Talks</li></ol></div>
+    <div class="cell"><b>The message chain</b><ol class="chain"><li class="act">PLAY</li><li><span class="msg">show tomato paste</span></li><li class="act">TAP</li><li><span class="msg">hide tomato paste</span></li><li><span class="msg">fake found / real one tapped</span></li><li><span class="msg">explain tomato paste</span></li><li><span class="msg">show rice</span></li><li class="more">... milk, noodles ...</li><li><span class="msg">game over</span></li></ol></div>
+  </div>
+  <div class="grid two">
+    <div class="cell key"><b>The one thing to explain</b><p>The clicked product broadcasts &quot;hide tomato paste&quot; first, so both products hide at once and nobody can click twice.</p></div>
+    <div class="cell warn"><b>Watch out</b><p>&quot;Tomato Paste Fake Talks&quot; is a separate sprite with the same picture, because the clicked fake has already hidden.</p></div>
+  </div>
+  <div class="cell ok"><b>Test before you say "done"</b><p>Click all 4 fakes: Score = 4. Click a real one: red cross, Score does not move, but the fake still explains.</p></div>
+  <div class="cell"><b>The build-along steps (on the website)</b><ol class="order"><li>Upload and rename</li><li>Green flag: every sprite hides</li><li>The Stage sets the rules and shouts</li><li>Only the Title and PLAY listen</li><li>The tick and the cross</li><li>Round 1: the two tomato paste tins</li><li>Clicking a tomato paste tin</li><li>Round 2: rice</li><li>Clicking a rice</li><li>Round 3: milk</li><li>Clicking a milk</li><li>Round 4: noodles</li><li>Clicking a noodles</li><li>Game over</li></ol></div>
+</section>
+<section class="game" id="hs">
+  <header><span class="sch meth">Methodist</span><h2>Honest Scale (simple)</h2><p class="one">3 customers each want 3 kilos. Click FULL WEIGHT or LESS WEIGHT. After 3 customers, Mama T checks Trust. Only 6 sprites.</p></header>
+  <div class="hook"><b>Open the call with</b><p>"Has a seller ever given you less than you paid for? Did you go back to that seller?"</p></div>
+  <div class="grid">
+    <div class="cell box"><b>The boxes (the Stage sets them)</b><p class="bx"><span class="var">Trust</span> <span class="num">5</span></p><p class="bx"><span class="var">Customer</span> <span class="num">1</span></p><p class="small">Honest adds 1 to Trust, cheating takes away 2. Mama T adds 1 to Customer after each sale.</p></div>
+    <div class="cell"><b>Upload in this order</b><ol class="order"><li>Title</li><li>Play Button</li><li>Mama T</li><li>Customer</li><li>Full Scale</li><li>Less Scale</li></ol></div>
+    <div class="cell"><b>The message chain</b><ol class="chain"><li class="act">PLAY</li><li><span class="msg">customer comes</span></li><li class="act">TAP</li><li><span class="msg">honest sale / cheating sale</span></li><li><span class="msg">next customer</span></li><li><span class="msg">customer comes (again) or shop closes</span></li></ol></div>
+  </div>
+  <div class="grid two">
+    <div class="cell key"><b>The one thing to explain</b><p>One message, &quot;customer comes&quot;, brings out Mama T, the customer and both scales. Mama T sends it again for the next customer, so we never copy sprites.</p></div>
+    <div class="cell warn"><b>Watch out</b><p>Both scales must listen for BOTH &quot;honest sale&quot; and &quot;cheating sale&quot; and hide, or the old scale stays on screen.</p></div>
+  </div>
+  <div class="cell ok"><b>Test before you say "done"</b><p>Honest with all 3: Trust 8, Mama T happy. Cheat once: Trust 5, Mama T worried. Cheat every time: Trust -1.</p></div>
+  <div class="cell"><b>The build-along steps (on the website)</b><ol class="order"><li>Upload and rename</li><li>Green flag: every sprite hides</li><li>The Stage sets the rules and shouts</li><li>Only the Title and PLAY listen</li><li>&quot;customer comes&quot;: everyone comes out</li><li>Click a scale</li><li>The customer reacts</li><li>Mama T counts the customers</li><li>The shop closes</li></ol></div>
+</section>
+<section class="game" id="fjb">
+  <header><span class="sch meth">Methodist</span><h2>Family Job Board</h2><p class="one">Mum asks for 4 chores, one at a time. Click the chore she asked for. Right: tick, Tayo talks, +1. Wrong: cross, no reward. Then Daddy comes home.</p></header>
+  <div class="hook"><b>Open the call with</b><p>"In your house, who sweeps? Who fetches water? Is it shared fairly?"</p></div>
+  <div class="grid">
+    <div class="cell box"><b>The box (the Stage sets them)</b><p class="bx"><span class="var">Score</span> <span class="num">0</span></p><p class="small">Only the right picture has &quot;change Score by 1&quot;.</p></div>
+    <div class="cell"><b>Upload in this order</b><ol class="order"><li>Title</li><li>Play Button</li><li>Mum</li><li>Tayo</li><li>Clothes 1</li><li>Water 1</li><li>Sweep 2</li><li>Plates 2</li><li>Water 3</li><li>Rubbish 3</li><li>Plates 4</li><li>Chairs 4</li><li>Tick</li><li>Cross</li><li>Daddy Car</li></ol></div>
+    <div class="cell"><b>The message chain</b><ol class="chain"><li class="act">PLAY</li><li><span class="msg">chore 1</span></li><li class="act">TAP</li><li><span class="msg">right chore + tayo washes the clothes / wrong chore</span></li><li><span class="msg">chore 2</span></li><li class="more">... chore 3, chore 4 ...</li><li><span class="msg">chores done</span></li><li><span class="msg">daddy comes home</span></li></ol></div>
+  </div>
+  <div class="grid two">
+    <div class="cell key"><b>The one thing to explain</b><p>One message does three jobs: &quot;chore 2&quot; hides the chore 1 pictures, makes Mum ask for chore 2, and shows the chore 2 pictures.</p></div>
+    <div class="cell warn"><b>Watch out</b><p>Both pictures (right AND wrong) must end with the next message, or the game stops.</p></div>
+  </div>
+  <div class="cell ok"><b>Test before you say "done"</b><p>All 4 right: Score 4, evening sky, Daddy&#x27;s car. Two wrong: Score 2, and the wrong pictures say &quot;Wrong chore done, no reward!!&quot;</p></div>
+  <div class="cell"><b>The build-along steps (on the website)</b><ol class="order"><li>Upload and rename</li><li>Green flag: every sprite hides</li><li>The Stage sets the rules and shouts</li><li>Only the Title and PLAY listen</li><li>&quot;chore 1&quot;: Mum asks, two pictures come out</li><li>The tick and the cross</li><li>Clicking the chore 1 pictures</li><li>&quot;chore 2&quot;: one message does three jobs</li><li>Clicking the chore 2 pictures</li><li>&quot;chore 3&quot;: one message does three jobs</li><li>Clicking the chore 3 pictures</li><li>&quot;chore 4&quot;: one message does three jobs</li><li>Clicking the chore 4 pictures</li><li>&quot;chores done&quot; and Daddy comes home</li></ol></div>
+</section>
+<section class="game" id="mm">
+  <header><span class="sch unity">Unity</span><h2>Middleman Maze</h2><p class="one">The truck drives the same road twice. Press SPACE at each stop. Trip 1: three middlemen take a cut. Trip 2: the co-op.</p></header>
+  <div class="hook"><b>Open the call with</b><p>"Tomatoes are ₦10,000 at the farm. Why do we pay ₦30,000 in the market?"</p></div>
+  <div class="grid">
+    <div class="cell box"><b>The boxes (the Stage sets them)</b><p class="bx"><span class="var">Trip</span> <span class="num">0</span></p><p class="bx"><span class="var">Price ₦</span> <span class="num">0</span></p><p class="bx"><span class="var">Farmer Gets ₦</span> <span class="num">0</span></p><p class="small">The Farmer sets Price ₦ and Farmer Gets ₦ at the start of each trip. Each middleman adds his cut to Price ₦.</p></div>
+    <div class="cell"><b>Upload in this order</b><ol class="order"><li>Title</li><li>Play Button</li><li>Farmer</li><li>Truck</li><li>Village Buyer</li><li>Transporter</li><li>Market Seller</li></ol></div>
+    <div class="cell"><b>The message chain</b><ol class="chain"><li class="act">PLAY</li><li><span class="msg">trip starts</span></li><li><span class="msg">drive to gate 1</span></li><li><span class="msg">SPACE</span></li><li><span class="msg">truck reaches gate 1</span></li><li><span class="msg">drive to gate 2</span></li><li class="more">... gate 3 ...</li><li><span class="msg">drive to market</span></li><li><span class="msg">truck reaches the market</span></li><li><span class="msg">trip starts (trip 2)</span></li></ol></div>
+  </div>
+  <div class="grid two">
+    <div class="cell key"><b>The one thing to explain</b><p>Every middleman asks &quot;is Trip = 1?&quot;. The same scripts give a different answer on trip 2.</p></div>
+    <div class="cell warn"><b>Watch out</b><p>The truck waits until the SPACE key is pressed. Click the stage first, so Scratch hears the keyboard.</p></div>
+  </div>
+  <div class="cell ok"><b>Test before you say "done"</b><p>Trip 1: Price ₦ 10000, 15000, 22000, 30000; the farmer gets 10,000. Trip 2: the buyer pays 25000, the farmer gets 20,000.</p></div>
+  <div class="cell"><b>The build-along steps (on the website)</b><ol class="order"><li>Upload and rename</li><li>Green flag: every sprite hides</li><li>The Stage sets the rules and shouts</li><li>Only the Title and PLAY listen</li><li>A trip starts</li><li>The truck drives, one gate at a time</li><li>The three middlemen</li><li>At the market: try again with the co-op?</li></ol></div>
+</section>
+<section class="game" id="sn">
+  <header><span class="sch unity">Unity</span><h2>Shrinking Naira</h2><p class="one">Mum has the same ₦5,000 and 20 seconds a month to buy food. Every month every price goes up. 4 months. F freezes the game.</p></header>
+  <div class="hook"><b>Open the call with</b><p>"How much was a loaf of bread last year? How much is it now?"</p></div>
+  <div class="grid">
+    <div class="cell box"><b>The boxes (the Stage sets them)</b><p class="bx"><span class="var">Month</span> <span class="num">1</span></p><p class="bx"><span class="var">Time</span> <span class="num">20</span></p><p class="bx"><span class="var">Money ₦</span> <span class="num">5000</span></p><p class="bx"><span class="var">Foods Bought</span> <span class="num">0</span></p><p class="bx"><span class="var">5 price boxes</span> <span class="num">see Step 3</span></p><p class="bx"><span class="var">Frozen</span> <span class="num">0</span></p><p class="small">Every month the Price Arrow sets Money ₦ back to 5000 and adds to every price box. Each food checks &quot;is Money ₦ &lt; my price?&quot;</p></div>
+    <div class="cell"><b>Upload in this order</b><ol class="order"><li>Title</li><li>Play Button</li><li>Calendar</li><li>Mum</li><li>Freeze Button</li><li>Iya Oja</li><li>Basket</li><li>Rice</li><li>Bread</li><li>Eggs</li><li>Tomatoes</li><li>Palm Oil</li><li>Price Arrow</li><li>Caption</li><li>Freeze Overlay</li></ol></div>
+    <div class="cell"><b>The message chain</b><ol class="chain"><li class="act">PLAY</li><li><span class="msg">new month starts</span></li><li><span class="msg">iya oja talks</span></li><li><span class="msg">market opens</span></li><li><span class="msg">TAP foods</span></li><li><span class="msg">market closes</span></li><li><span class="msg">prices go up</span></li><li><span class="msg">new month starts (again) or show the lesson</span></li></ol></div>
+  </div>
+  <div class="grid two">
+    <div class="cell key"><b>The one thing to explain</b><p>Each price lives in its own box, so one block per food can make every price go up.</p></div>
+    <div class="cell warn"><b>Watch out</b><p>The clock has &quot;wait until Frozen = 0&quot; inside its repeat. Without it, FREEZE does not stop the time.</p></div>
+  </div>
+  <div class="cell ok"><b>Test before you say "done"</b><p>Each month, click the foods from left to right: Mum buys 5 foods, then 3, 3, 2. Mum ends: &quot;Now the same 5 foods cost ₦7,700!&quot;</p></div>
+  <div class="cell"><b>The build-along steps (on the website)</b><ol class="order"><li>Upload and rename</li><li>Green flag: every sprite hides</li><li>The Stage sets the rules and shouts</li><li>Only the Title and PLAY listen</li><li>A new month starts</li><li>Iya Oja talks</li><li>The market opens: 20 seconds to shop</li><li>The market closes</li><li>Prices go up</li><li>The lesson</li><li>FREEZE for our signers</li></ol></div>
+</section>
+<section class="game" id="eb">
+  <header><span class="sch unity">Unity</span><h2>The Empty Barn</h2><p class="one">6 animals. At a surprise time one gets a little sick. Click it fast. If you wait, it gets very sick, then it is lost. Keep the barn full until sunset.</p></header>
+  <div class="hook"><b>Open the call with</b><p>"How can you tell when a goat or chicken is starting to get sick?"</p></div>
+  <div class="grid">
+    <div class="cell box"><b>The boxes (the Stage sets them)</b><p class="bx"><span class="var">Time</span> <span class="num">45</span></p><p class="bx"><span class="var">Score</span> <span class="num">0</span></p><p class="bx"><span class="var">Animals Left</span> <span class="num">6</span></p><p class="bx"><span class="var">Vaccines Left</span> <span class="num">3</span></p><p class="small">Costume number tells how sick an animal is: 1 healthy, 2 a little sick, 3 very sick. A lost animal takes 1 from Animals Left.</p></div>
+    <div class="cell"><b>Upload in this order</b><ol class="order"><li>Title</li><li>Play Button</li><li>Farmer</li><li>Farmhand</li><li>Goat</li><li>Chicken</li><li>Sheep</li><li>Duck</li><li>Goat 2</li><li>Chicken 2</li><li>Vaccine Button</li><li>Sunset</li><li>Caption</li></ol></div>
+    <div class="cell"><b>The message chain</b><ol class="chain"><li class="act">PLAY</li><li><span class="msg">farmer explains</span></li><li><span class="msg">farm day starts</span></li><li><span class="msg">TAP sick animals</span></li><li><span class="msg">vaccine heals the sick (side job)</span></li><li><span class="msg">sunset comes</span></li><li><span class="msg">farmer gives the result</span></li></ol></div>
+  </div>
+  <div class="grid two">
+    <div class="cell key"><b>The one thing to explain</b><p>Each animal waits &quot;pick random 4 to 12&quot; seconds, so sickness comes at a surprise time, like on a real farm.</p></div>
+    <div class="cell warn"><b>Watch out</b><p>At sunset each animal must &quot;stop other scripts in sprite&quot;, or animals keep getting sick after the day ends.</p></div>
+  </div>
+  <div class="cell ok"><b>Test before you say "done"</b><p>Treat every animal early: Animals Left 6, the farm is strong. Never click: animals are lost one by one.</p></div>
+  <div class="cell"><b>The build-along steps (on the website)</b><ol class="order"><li>Upload and rename</li><li>Green flag: every sprite hides</li><li>The Stage sets the rules and shouts</li><li>Only the Title and PLAY listen</li><li>The farmer explains</li><li>The farmhand is the clock</li><li>The animals get sick</li><li>Click to treat</li><li>The vaccine button</li><li>Sunset</li><li>The farmer gives the result</li></ol></div>
+</section>
+</div>
+<footer><div class="wrap">Every message name and test number was checked by playing the v7 games in the Scratch engine. Full block lists are in each game's Build it tab on the showcase website.</div></footer>
+
+<a href="/" id="bb-home" aria-label="Back to the home page" style="position:fixed;right:12px;bottom:12px;z-index:2147483000;background:#0f3d5e;color:#fff;font:600 13px/1 system-ui,sans-serif;padding:9px 12px;border-radius:99px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:.88">&#8962; Home</a></body></html>
